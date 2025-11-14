@@ -1,7 +1,5 @@
-"use client"
-
 import { useState } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { useLocation, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
@@ -18,8 +16,6 @@ import {
   Users,
   Settings,
   Upload,
-  UserCheck,
-  Building,
   LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -44,39 +40,29 @@ const navigationItems = {
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
     { name: "My Classes", href: "/dashboard/teacher/classes", icon: Users },
   ],
-  school_admin: [
-    { name: "Dashboard", href: "/dashboard/school-admin", icon: LayoutDashboard },
-    { name: "User Management", href: "/dashboard/school-admin/users", icon: Users },
-    { name: "Timetables", href: "/dashboard/school-admin/timetable", icon: Calendar },
-    { name: "Payment Types", href: "/dashboard/school-admin/payments", icon: CreditCard },
-    { name: "Settings", href: "/dashboard/school-admin/settings", icon: Settings },
-  ],
-  super_admin: [
-    { name: "Dashboard", href: "/dashboard/super-admin", icon: LayoutDashboard },
-    { name: "Schools", href: "/dashboard/super-admin/schools", icon: Building },
-    { name: "Subscriptions", href: "/dashboard/super-admin/subscriptions", icon: CreditCard },
-    { name: "Analytics", href: "/dashboard/super-admin/analytics", icon: UserCheck },
+  aspirant: [
+    { name: "Dashboard", href: "/dashboard/aspirant", icon: LayoutDashboard },
   ],
 }
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
-  const pathname = usePathname()
-  const router = useRouter()
+  const location = useLocation()
+  const navigate = useNavigate()
   const { user, logout } = useAuthStore()
 
   if (!user) return null
 
-  const navigation = navigationItems[user.role] || []
+  const navigation = navigationItems[user.role as keyof typeof navigationItems] || []
 
   const handleLogout = () => {
     logout()
-    router.push("/")
+    navigate("/")
     setOpen(false)
   }
 
   const handleNavigation = (href: string) => {
-    router.push(href)
+    navigate(href)
     setOpen(false)
   }
 
@@ -120,7 +106,7 @@ export function MobileNav() {
                 <li>
                   <ul role="list" className="-mx-2 space-y-1">
                     {navigation.map((item) => {
-                      const isActive = pathname === item.href
+                      const isActive = location.pathname === item.href
                       return (
                         <li key={item.name}>
                           <Button

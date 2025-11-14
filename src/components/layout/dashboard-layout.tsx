@@ -1,5 +1,3 @@
-"use client"
-
 import type { ReactNode } from "react"
 import { useAuthStore } from "@/store"
 import { Sidebar } from "./sidebar"

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams } from "react-router-dom"
 import { useAuthStore, useResourcesStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
@@ -39,7 +39,7 @@ const resourceTypeIcons = {
 }
 
 export default function TeacherResources() {
-  const searchParams = useSearchParams()
+  const [searchParams] = useSearchParams()
   const showUpload = searchParams.get("action") === "upload"
 
   const { user } = useAuthStore()

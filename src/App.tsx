@@ -5,7 +5,6 @@ import { ToastProvider } from '@/components/ui/toast-provider'
 import { useAuthStore } from '@/store'
 
 // Import pages
-import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/auth/LoginPage'
 import RegisterPage from '@/pages/auth/RegisterPage'
 
@@ -26,12 +25,7 @@ import TeacherAssignments from '@/pages/dashboard/teacher/TeacherAssignments'
 import TeacherClasses from '@/pages/dashboard/teacher/TeacherClasses'
 import TeacherResources from '@/pages/dashboard/teacher/TeacherResources'
 
-import SchoolAdminDashboard from '@/pages/dashboard/school-admin/SchoolAdminDashboard'
-import SchoolAdminTimetable from '@/pages/dashboard/school-admin/SchoolAdminTimetable'
-import SchoolAdminUsers from '@/pages/dashboard/school-admin/SchoolAdminUsers'
-
-import SuperAdminDashboard from '@/pages/dashboard/super-admin/SuperAdminDashboard'
-import SuperAdminSchools from '@/pages/dashboard/super-admin/SuperAdminSchools'
+import AspirantDashboard from '@/pages/dashboard/aspirant/AspirantDashboard'
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: string[] }> = ({ 
@@ -57,7 +51,7 @@ function App() {
       <div className="h-full">
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<LoginPage />} />
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/register" element={<RegisterPage />} />
 
@@ -132,32 +126,10 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* School Admin routes */}
-          <Route path="/dashboard/school-admin" element={
-            <ProtectedRoute allowedRoles={['school_admin']}>
-              <SchoolAdminDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/school-admin/timetable" element={
-            <ProtectedRoute allowedRoles={['school_admin']}>
-              <SchoolAdminTimetable />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/school-admin/users" element={
-            <ProtectedRoute allowedRoles={['school_admin']}>
-              <SchoolAdminUsers />
-            </ProtectedRoute>
-          } />
-
-          {/* Super Admin routes */}
-          <Route path="/dashboard/super-admin" element={
-            <ProtectedRoute allowedRoles={['super_admin']}>
-              <SuperAdminDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/super-admin/schools" element={
-            <ProtectedRoute allowedRoles={['super_admin']}>
-              <SuperAdminSchools />
+          {/* Aspirant routes */}
+          <Route path="/dashboard/aspirant" element={
+            <ProtectedRoute allowedRoles={['aspirant']}>
+              <AspirantDashboard />
             </ProtectedRoute>
           } />
 

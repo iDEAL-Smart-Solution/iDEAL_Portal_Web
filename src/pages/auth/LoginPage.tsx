@@ -31,11 +31,8 @@ export default function LoginPage() {
         case "teacher":
           navigate("/dashboard/teacher")
           break
-        case "school_admin":
-          navigate("/dashboard/school-admin")
-          break
-        case "super_admin":
-          navigate("/dashboard/super-admin")
+        case "aspirant":
+          navigate("/dashboard/aspirant")
           break
         default:
           navigate("/")
@@ -163,19 +160,39 @@ export default function LoginPage() {
                 >
                   Teacher Demo
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => fillDemoCredentials("admin@greenwood.edu")}>
-                  Admin Demo
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillDemoCredentials("james.smith@aspirant.greenwood.edu")}
+                >
+                  Aspirant Demo
                 </Button>
               </div>
             </div>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
-                <Link to="/auth/register" className="text-primary hover:underline">
-                  Register here
-                </Link>
-              </p>
+            <div className="mt-6 space-y-3">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Don't have an account?{" "}
+                  <Link to="/auth/register" className="text-primary hover:underline">
+                    Register here
+                  </Link>
+                </p>
+              </div>
+              <div className="pt-3 border-t">
+                <p className="text-sm text-muted-foreground mb-2 text-center">New to our school?</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    // Navigate to register page with aspirant role pre-selected
+                    navigate("/auth/register?role=aspirant")
+                  }}
+                >
+                  Create Aspirant Account
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

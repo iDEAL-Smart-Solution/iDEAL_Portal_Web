@@ -3,8 +3,7 @@ import type {
   Student,
   Parent,
   Teacher,
-  SchoolAdmin,
-  SuperAdmin,
+  Aspirant,
   School,
   Class,
   Subject,
@@ -103,30 +102,29 @@ export const mockUsers: User[] = [
     updatedAt: "2024-01-19T00:00:00Z",
   } as Teacher & { subjectIds: string[]; classIds: string[] },
 
-  // School Admin
+  // Aspirants
   {
-    id: "admin_1",
-    email: "admin@greenwood.edu",
-    firstName: "Emily",
-    lastName: "Johnson",
-    role: "school_admin",
+    id: "aspirant_1",
+    email: "james.smith@aspirant.greenwood.edu",
+    firstName: "James",
+    lastName: "Smith",
+    role: "aspirant",
     schoolId: "school_1",
-    avatar: "/admin-avatar.png",
-    createdAt: "2024-01-15T00:00:00Z",
-    updatedAt: "2024-01-15T00:00:00Z",
-  } as SchoolAdmin,
-
-  // Super Admin
+    avatar: "/student-avatar.png",
+    createdAt: "2024-02-15T00:00:00Z",
+    updatedAt: "2024-02-15T00:00:00Z",
+  } as Aspirant & { admissionStatus: "pending"; applicationDate: string; applicationId: string },
   {
-    id: "super_admin_1",
-    email: "superadmin@ideal.edu",
-    firstName: "David",
-    lastName: "Anderson",
-    role: "super_admin",
-    avatar: "/super-admin-avatar.png",
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-01T00:00:00Z",
-  } as SuperAdmin,
+    id: "aspirant_2",
+    email: "emily.jones@aspirant.greenwood.edu",
+    firstName: "Emily",
+    lastName: "Jones",
+    role: "aspirant",
+    schoolId: "school_1",
+    avatar: "/student-avatar.png",
+    createdAt: "2024-02-10T00:00:00Z",
+    updatedAt: "2024-02-10T00:00:00Z",
+  } as Aspirant & { admissionStatus: "accepted"; applicationDate: string; applicationId: string },
 ]
 
 // Mock Classes
@@ -449,3 +447,9 @@ export const mockTimetable: TimetableEntry[] = [
 ;(mockUsers[3] as any).classIds = ["class_1", "class_3"]
 ;(mockUsers[4] as any).subjectIds = ["subject_2", "subject_4"]
 ;(mockUsers[4] as any).classIds = ["class_1", "class_2"]
+;(mockUsers[5] as any).admissionStatus = "pending"
+;(mockUsers[5] as any).applicationDate = "2024-02-15T00:00:00Z"
+;(mockUsers[5] as any).applicationId = "APP-2024-001"
+;(mockUsers[6] as any).admissionStatus = "accepted"
+;(mockUsers[6] as any).applicationDate = "2024-02-10T00:00:00Z"
+;(mockUsers[6] as any).applicationId = "APP-2024-002"

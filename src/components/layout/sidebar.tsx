@@ -1,6 +1,4 @@
-"use client"
-
-import { usePathname, useRouter } from "next/navigation"
+import { useLocation, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -15,8 +13,6 @@ import {
   Users,
   Settings,
   Upload,
-  UserCheck,
-  Building,
   LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -41,33 +37,23 @@ const navigationItems = {
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
     { name: "My Classes", href: "/dashboard/teacher/classes", icon: Users },
   ],
-  school_admin: [
-    { name: "Dashboard", href: "/dashboard/school-admin", icon: LayoutDashboard },
-    { name: "User Management", href: "/dashboard/school-admin/users", icon: Users },
-    { name: "Timetables", href: "/dashboard/school-admin/timetable", icon: Calendar },
-    { name: "Payment Types", href: "/dashboard/school-admin/payments", icon: CreditCard },
-    { name: "Settings", href: "/dashboard/school-admin/settings", icon: Settings },
-  ],
-  super_admin: [
-    { name: "Dashboard", href: "/dashboard/super-admin", icon: LayoutDashboard },
-    { name: "Schools", href: "/dashboard/super-admin/schools", icon: Building },
-    { name: "Subscriptions", href: "/dashboard/super-admin/subscriptions", icon: CreditCard },
-    { name: "Analytics", href: "/dashboard/super-admin/analytics", icon: UserCheck },
+  aspirant: [
+    { name: "Dashboard", href: "/dashboard/aspirant", icon: LayoutDashboard },
   ],
 }
 
 export function Sidebar() {
-  const pathname = usePathname()
-  const router = useRouter()
+  const location = useLocation()
+  const navigate = useNavigate()
   const { user, logout } = useAuthStore()
 
   if (!user) return null
 
-  const navigation = navigationItems[user.role] || []
+  const navigation = navigationItems[user.role as keyof typeof navigationItems] || []
 
   const handleLogout = () => {
     logout()
-    router.push("/")
+    navigate("/")
   }
 
   return (
@@ -105,7 +91,7 @@ export function Sidebar() {
           <li>
             <ul role="list" className="-mx-2 space-y-1">
               {navigation.map((item) => {
-                const isActive = pathname === item.href
+                const isActive = location.pathname === item.href
                 return (
                   <li key={item.name}>
                     <Button
@@ -114,7 +100,7 @@ export function Sidebar() {
                         "w-full justify-start gap-3 h-11 transition-all duration-200",
                         isActive && "bg-primary/10 text-primary hover:bg-primary/20",
                       )}
-                      onClick={() => router.push(item.href)}
+                      onClick={() => navigate(item.href)}
                     >
                       <item.icon className="h-5 w-5" />
                       {item.name}
@@ -132,7 +118,7 @@ export function Sidebar() {
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-3 h-11 transition-all duration-200"
-                  onClick={() => router.push("/settings")}
+                  onClick={() => navigate("/settings")}
                 >
                   <Settings className="h-5 w-5" />
                   Settings

@@ -1,4 +1,3 @@
-"use client"
 import { useAuthStore } from "@/store"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -11,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Menu, Bell, Settings, LogOut } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useNavigate } from "react-router-dom"
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void
@@ -19,13 +18,13 @@ interface HeaderProps {
 
 export function Header({ onMobileMenuToggle }: HeaderProps) {
   const { user, logout } = useAuthStore()
-  const router = useRouter()
+  const navigate = useNavigate()
 
   if (!user) return null
 
   const handleLogout = () => {
     logout()
-    router.push("/")
+    navigate("/")
   }
 
   return (
@@ -83,7 +82,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push("/settings")}>
+              <DropdownMenuItem onClick={() => navigate("/settings")}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>

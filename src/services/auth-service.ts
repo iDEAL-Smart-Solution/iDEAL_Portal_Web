@@ -53,6 +53,23 @@ class AuthService {
       updatedAt: new Date().toISOString(),
     }
 
+    // If registering as aspirant, add aspirant-specific fields
+    if (data.role === "aspirant") {
+      const aspirantUser = {
+        ...newUser,
+        admissionStatus: "pending" as const,
+        applicationDate: new Date().toISOString(),
+        applicationId: `APP-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+      }
+      mockUsers.push(aspirantUser as any)
+      localStorage.setItem("auth_token", "mock_token_" + aspirantUser.id)
+      return {
+        success: true,
+        data: aspirantUser as any,
+        message: "Registration successful",
+      }
+    }
+
     mockUsers.push(newUser)
     localStorage.setItem("auth_token", "mock_token_" + newUser.id)
 

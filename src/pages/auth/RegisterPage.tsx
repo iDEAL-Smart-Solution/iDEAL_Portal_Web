@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import { Link } from "react-router-dom"
+import React, { useState, useEffect } from "react"
+import { Link, useSearchParams } from "react-router-dom"
 import { useAuthStore } from "@/store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,19 +11,31 @@ import { GraduationCap, Eye, EyeOff } from "lucide-react"
 import type { UserRole } from "@/types"
 
 export default function RegisterPage() {
-  // const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { register, isLoading, error, clearError } = useAuthStore()
+  const roleParam = searchParams.get("role")
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
     firstName: "",
     lastName: "",
-    role: "" as UserRole | "",
+    role: (roleParam as UserRole) || ("" as UserRole | ""),
     schoolId: "school_1", // Default to first school for demo
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Update role if it comes from URL parameter
+  useEffect(() => {
+    if (roleParam && ["student", "parent", "teacher", "aspirant"].includes(roleParam)) {
+      setFormData((prev) => ({
+        ...prev,
+        role: roleParam as UserRole,
+      }))
+    }
+  }, [roleParam])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -143,7 +155,7 @@ export default function RegisterPage() {
                     <SelectItem value="student">Student</SelectItem>
                     <SelectItem value="parent">Parent</SelectItem>
                     <SelectItem value="teacher">Teacher</SelectItem>
-                    <SelectItem value="school_admin">School Admin</SelectItem>
+                    <SelectItem value="aspirant">Aspirant</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

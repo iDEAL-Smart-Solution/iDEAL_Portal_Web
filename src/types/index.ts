@@ -1,5 +1,5 @@
 // User roles and authentication types
-export type UserRole = "student" | "parent" | "teacher" | "school_admin" | "super_admin"
+export type UserRole = "student" | "parent" | "teacher" | "aspirant"
 
 export interface User {
   id: string
@@ -40,13 +40,12 @@ export interface Teacher extends User {
   classIds: string[]
 }
 
-export interface SchoolAdmin extends User {
-  role: "school_admin"
-  schoolId: string
-}
-
-export interface SuperAdmin extends User {
-  role: "super_admin"
+export interface Aspirant extends User {
+  role: "aspirant"
+  admissionStatus: "pending" | "accepted" | "rejected" | "waitlisted"
+  applicationDate: string
+  applicationId?: string
+  schoolId?: string
 }
 
 // Academic types

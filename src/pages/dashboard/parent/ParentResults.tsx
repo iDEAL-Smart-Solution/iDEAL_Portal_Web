@@ -1,7 +1,7 @@
 ﻿
 
 import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams } from "react-router-dom"
 import { useAuthStore, useResultsStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
@@ -17,7 +17,7 @@ import { mockUsers } from "@/lib/mock-data"
 import type { Result } from "@/types"
 
 export default function ParentResults() {
-  const searchParams = useSearchParams()
+  const [searchParams] = useSearchParams()
   const wardParam = searchParams.get("ward")
 
   const { user } = useAuthStore()

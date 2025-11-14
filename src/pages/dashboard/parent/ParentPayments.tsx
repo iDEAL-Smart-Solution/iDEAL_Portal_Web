@@ -3,7 +3,7 @@
 import { CardDescription } from "@/components/ui/card"
 
 import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams } from "react-router-dom"
 import { useAuthStore, usePaymentsStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
@@ -22,7 +22,7 @@ import { mockUsers } from "@/lib/mock-data"
 import type { Payment } from "@/types"
 
 export default function ParentPayments() {
-  const searchParams = useSearchParams()
+  const [searchParams] = useSearchParams()
   const wardParam = searchParams.get("ward")
 
   const { user } = useAuthStore()

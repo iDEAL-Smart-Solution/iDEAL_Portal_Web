@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams } from "react-router-dom"
 import { useAuthStore, useAssignmentsStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
@@ -31,7 +31,7 @@ import { mockSubjects, mockClasses } from "@/lib/mock-data"
 import type { Assignment } from "@/types"
 
 export default function TeacherAssignments() {
-  const searchParams = useSearchParams()
+  const [searchParams] = useSearchParams()
   const showCreate = searchParams.get("action") === "create"
 
   const { user } = useAuthStore()
