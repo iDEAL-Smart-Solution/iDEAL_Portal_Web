@@ -14,6 +14,8 @@ import {
   Settings,
   Upload,
   LogOut,
+  UserPlus,
+  FileCheck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -24,6 +26,7 @@ const navigationItems = {
     { name: "Payments", href: "/dashboard/student/payments", icon: CreditCard },
     { name: "Assignments", href: "/dashboard/student/assignments", icon: BookOpen },
     { name: "Timetable", href: "/dashboard/student/timetable", icon: Calendar },
+    { name: "Resources", href: "/dashboard/student/resources", icon: Upload },
   ],
   parent: [
     { name: "Dashboard", href: "/dashboard/parent", icon: LayoutDashboard },
@@ -36,11 +39,28 @@ const navigationItems = {
     { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
     { name: "My Classes", href: "/dashboard/teacher/classes", icon: Users },
+    { name: "Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
   ],
   aspirant: [
     { name: "Dashboard", href: "/dashboard/aspirant", icon: LayoutDashboard },
   ],
+  admission: {
+  title: "Admission",
+  icon: UserPlus,
+  children: [
+    { title: "Apply", path: "/admission/apply" },
+    { title: "Status", path: "/admission/status" },
+  ],
+},
+adminUI:{
+  title: "Admission Management",
+  icon: FileCheck,
+  role: "admin",
+  path: "/admin/admission",
 }
+
+}
+
 
 export function Sidebar() {
   const location = useLocation()
