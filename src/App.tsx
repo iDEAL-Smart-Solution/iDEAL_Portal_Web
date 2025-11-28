@@ -7,6 +7,9 @@ import { useAuthStore } from '@/store'
 // Import pages
 import LoginPage from '@/pages/auth/LoginPage'
 import RegisterPage from '@/pages/auth/RegisterPage'
+import AdmissionForm from '@/pages/admission/AdmissionForm'
+import ApplicationStatus from '@/pages/admission/ApplicationStatus'
+import AdminAdmissionApproval from '@/pages/admission/AdminAdmissionApproval'
 
 // Dashboard pages
 import StudentDashboard from '@/pages/dashboard/student/StudentDashboard'
@@ -14,6 +17,7 @@ import StudentAssignments from '@/pages/dashboard/student/StudentAssignments'
 import StudentPayments from '@/pages/dashboard/student/StudentPayments'
 import StudentResults from '@/pages/dashboard/student/StudentResults'
 import StudentTimetable from '@/pages/dashboard/student/StudentTimetable'
+import StudentResources from '@/pages/dashboard/student/StudentResources'
 
 import ParentDashboard from '@/pages/dashboard/parent/ParentDashboard'
 import ParentPayments from '@/pages/dashboard/parent/ParentPayments'
@@ -24,13 +28,14 @@ import TeacherDashboard from '@/pages/dashboard/teacher/TeacherDashboard'
 import TeacherAssignments from '@/pages/dashboard/teacher/TeacherAssignments'
 import TeacherClasses from '@/pages/dashboard/teacher/TeacherClasses'
 import TeacherResources from '@/pages/dashboard/teacher/TeacherResources'
+import TeacherSubjects from './pages/dashboard/teacher/TeacherSubjects'
 
 import AspirantDashboard from '@/pages/dashboard/aspirant/AspirantDashboard'
 
 // Protected Route Component
-const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: string[] }> = ({ 
-  children, 
-  allowedRoles 
+const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: string[] }> = ({
+  children,
+  allowedRoles
 }) => {
   const { isAuthenticated, user } = useAuthStore()
 
@@ -61,6 +66,11 @@ function App() {
               <StudentDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/dashboard/student/resources" element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentResources />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/student/assignments" element={
             <ProtectedRoute allowedRoles={['student']}>
               <StudentAssignments />
@@ -81,6 +91,13 @@ function App() {
               <StudentTimetable />
             </ProtectedRoute>
           } />
+          {/* admission route */}
+          <Route path="/admission/apply" element={<AdmissionForm />} />
+          <Route path="/admission/status" element={<ApplicationStatus />} />
+
+          {/* Admin */}
+          <Route path="/admin/admission" element={<AdminAdmissionApproval />} />
+
 
           {/* Parent routes */}
           <Route path="/dashboard/parent" element={
@@ -108,6 +125,11 @@ function App() {
           <Route path="/dashboard/teacher" element={
             <ProtectedRoute allowedRoles={['teacher']}>
               <TeacherDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/teacher/subjects" element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TeacherSubjects />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/teacher/assignments" element={

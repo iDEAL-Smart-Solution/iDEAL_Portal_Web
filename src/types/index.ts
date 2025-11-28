@@ -112,12 +112,15 @@ export interface Resource {
   id: string
   title: string
   description: string
-  type: "pdf" | "doc" | "video" | "image" | "other"
+  type: "pdf" | "doc" | "video" | "image" | "other" | "note" | "link"
   url: string
   subjectId: string
   teacherId: string
   classIds: string[]
   createdAt: string
+  subjectName: string
+  link: string
+  fileUrl: string
 }
 
 export interface Payment {
@@ -176,3 +179,19 @@ export interface RegisterData {
   role: UserRole
   schoolId?: string
 }
+export interface AdmissionFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dob: string;
+  address: string;
+  previousSchool: string;
+}
+
+export interface AdmissionApplication {
+  applicationId: string;
+  status: "pending" | "review" | "approved" | "rejected";
+  studentId?: string;
+}
+
