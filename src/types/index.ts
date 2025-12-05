@@ -48,6 +48,65 @@ export interface Aspirant extends User {
   schoolId?: string
 }
 
+// Aspirant/Admission types - Backend DTOs
+export enum AdmissionStatus {
+  Pending = 1,
+  Approved = 2,
+  Rejected = 3,
+  Migrated = 4
+}
+
+export interface ClassOption {
+  id: string;
+  name: string;
+  studentCount: number;
+  subjectCount: number;
+}
+
+export interface CreateAspirantRequest {
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+  gender?: string;
+  address?: string;
+  classId: string;
+  dateOfBirth: Date;
+  profilePicture: File;
+  parentAspirantName: string;
+  parentAspirantPhoneNumber: string;
+}
+
+export interface GetAspirantResponse {
+  id: string;
+  uin: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  gender?: string;
+  className?: string;
+  dateOfBirth: string;
+  profilePictureUrl?: string;
+  createdAt: string;
+  admissionStatus: AdmissionStatus;
+}
+
+export interface AspirantFilter {
+  gender?: string;
+  classId?: string;
+  search?: string; // name, email, UIN
+  fromDate?: string;
+  toDate?: string;
+  admissionStatus?: AdmissionStatus;
+}
+
+export interface UpdateAdmissionStatusRequest {
+  aspirantId: string;
+  newStatus: AdmissionStatus;
+}
+
 // Academic types
 export interface School {
   id: string

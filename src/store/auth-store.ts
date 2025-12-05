@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { AuthState, LoginCredentials, RegisterData } from "@/types"
-import { authService } from "@/services/auth-service"
+import axiosInstance from "@/services/api"
 
 interface AuthStore extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>
@@ -22,23 +22,44 @@ export const useAuthStore = create<AuthStore>()(
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null })
         try {
-          const response = await authService.login(credentials)
-          if (response.success && response.data) {
+          const response = await axiosInstance.post("/Auth/login", {
+            uin: credentials.email, // Backend expects UIN, but we're using email field for now
+            password: credentials.password
+          })
+          
+          if (response.data.success && response.data.data) {
+            const { user, token } = response.data.data
+            
+            // Store token and schoolId in sessionStorage
+            sessionStorage.setItem("token", token)
+            sessionStorage.setItem("SchoolId", user.schoolId)
+            
             set({
-              user: response.data,
+              user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                name: `${user.firstName} ${user.lastName}`,
+                role: user.role.toLowerCase(),
+                schoolId: user.schoolId,
+                avatar: user.profilePicture,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              },
               isAuthenticated: true,
               isLoading: false,
               error: null,
             })
           } else {
             set({
-              error: response.error || "Login failed",
+              error: response.data.message || "Login failed",
               isLoading: false,
             })
           }
-        } catch (error) {
+        } catch (error: any) {
           set({
-            error: "Network error occurred",
+            error: error.response?.data?.message || "Login failed",
             isLoading: false,
           })
         }
@@ -47,30 +68,22 @@ export const useAuthStore = create<AuthStore>()(
       register: async (data: RegisterData) => {
         set({ isLoading: true, error: null })
         try {
-          const response = await authService.register(data)
-          if (response.success && response.data) {
-            set({
-              user: response.data,
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-            })
-          } else {
-            set({
-              error: response.error || "Registration failed",
-              isLoading: false,
-            })
-          }
-        } catch (error) {
+          // TODO: Integrate with backend Auth API - check if register endpoint exists
+          // const response = await axiosInstance.post("/Auth/register", data)
+          // For now, registration might need to go through aspirant creation instead
+          throw new Error("Registration endpoint not yet integrated. Please use the Aspirant Application form.")
+        } catch (error: any) {
           set({
-            error: "Network error occurred",
+            error: error.response?.data?.message || error.message || "Registration failed",
             isLoading: false,
           })
         }
       },
 
       logout: () => {
-        authService.logout()
+        // TODO: Integrate with backend Auth API if needed
+        sessionStorage.removeItem("token")
+        sessionStorage.removeItem("SchoolId")
         set({
           user: null,
           isAuthenticated: false,

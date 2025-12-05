@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import type { Payment, PaymentType } from "@/types"
-import { paymentsService } from "@/services/payments-service"
+import axiosInstance from "@/services/api"
 
 interface PaymentsState {
   payments: Payment[]
@@ -25,47 +25,40 @@ export const usePaymentsStore = create<PaymentsStore>((set, get) => ({
   fetchPayments: async (studentId: string) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await paymentsService.getStudentPayments(studentId)
-      if (response.success && response.data) {
-        set({ payments: response.data, isLoading: false })
-      } else {
-        set({ error: response.error || "Failed to fetch payments", isLoading: false })
-      }
-    } catch (error) {
-      set({ error: "Network error occurred", isLoading: false })
+      // TODO: Integrate with backend Payment API
+      // const response = await axiosInstance.get(`/Payment/get-student-payments?studentId=${studentId}`)
+      // set({ payments: response.data.data, isLoading: false })
+      throw new Error("Payment API integration pending")
+    } catch (error: any) {
+      set({ error: error.response?.data?.message || "Failed to fetch payments", isLoading: false })
     }
   },
 
   fetchPaymentTypes: async (schoolId: string) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await paymentsService.getPaymentTypes(schoolId)
-      if (response.success && response.data) {
-        set({ paymentTypes: response.data, isLoading: false })
-      } else {
-        set({ error: response.error || "Failed to fetch payment types", isLoading: false })
-      }
-    } catch (error) {
-      set({ error: "Network error occurred", isLoading: false })
+      // TODO: Integrate with backend PaymentType API
+      // const response = await axiosInstance.get(`/PaymentType/get-all-payment-types?schoolId=${schoolId}`)
+      // set({ paymentTypes: response.data.data, isLoading: false })
+      throw new Error("PaymentType API integration pending")
+    } catch (error: any) {
+      set({ error: error.response?.data?.message || "Failed to fetch payment types", isLoading: false })
     }
   },
 
   makePayment: async (paymentId: string) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await paymentsService.makePayment(paymentId)
-      if (response.success) {
-        // Refresh payments after successful payment
-        const { payments } = get()
-        const updatedPayments = payments.map((p) =>
-          p.id === paymentId ? { ...p, status: "completed" as const, paidDate: new Date().toISOString() } : p,
-        )
-        set({ payments: updatedPayments, isLoading: false })
-      } else {
-        set({ error: response.error || "Payment failed", isLoading: false })
-      }
-    } catch (error) {
-      set({ error: "Network error occurred", isLoading: false })
+      // TODO: Integrate with backend Payment API
+      // const response = await axiosInstance.post(`/Payment/make-payment/${paymentId}`)
+      // const { payments } = get()
+      // const updatedPayments = payments.map((p) =>
+      //   p.id === paymentId ? { ...p, status: "completed" as const, paidDate: new Date().toISOString() } : p,
+      // )
+      // set({ payments: updatedPayments, isLoading: false })
+      throw new Error("Payment API integration pending")
+    } catch (error: any) {
+      set({ error: error.response?.data?.message || "Payment failed", isLoading: false })
     }
   },
 

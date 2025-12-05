@@ -186,8 +186,8 @@ export default function LoginPage() {
                   variant="outline"
                   className="w-full"
                   onClick={() => {
-                    // Navigate to register page with aspirant role pre-selected
-                    navigate("/auth/register?role=aspirant")
+                    // Navigate to admission application form
+                    navigate("/admission/apply")
                   }}
                 >
                   Create Aspirant Account

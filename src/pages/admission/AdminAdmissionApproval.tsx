@@ -1,13 +1,22 @@
-import admissionService from "@/services/admission-service";
 import { useState } from "react";
+import { useAdmissionStore } from "@/store/admission-store";
+import { AdmissionStatus } from "@/types/index";
 
 export default function AdminAdmissionApproval() {
   const [id, setId] = useState("");
-  const [result, setResult] = useState<{ studentId: string } | null>(null);
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const { updateAdmissionStatus, loading } = useAdmissionStore();
 
   const approve = async () => {
-    const res = await admissionService.approve(id);
-    setResult(res);
+    try {
+      const res = await updateAdmissionStatus({
+        aspirantId: id,
+        newStatus: AdmissionStatus.Approved
+      });
+      setResult(res);
+    } catch (error: any) {
+      setResult({ success: false, message: error.message });
+    }
   };
 
   return (
@@ -21,14 +30,17 @@ export default function AdminAdmissionApproval() {
         onChange={(e) => setId(e.target.value)}
       />
 
-      <button onClick={approve} className="bg-green-600 text-white px-4 py-2 rounded">
-        Approve Application
+      <button 
+        onClick={approve} 
+        className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
+        disabled={loading}
+      >
+        {loading ? "Processing..." : "Approve Application"}
       </button>
 
       {result && (
-        <div className="mt-4 p-4 border rounded bg-green-100">
-          <p>Approved Successfully!</p>
-          <p>Student ID: <strong>{result.studentId}</strong></p>
+        <div className={`mt-4 p-4 border rounded ${result.success ? 'bg-green-100' : 'bg-red-100'}`}>
+          <p>{result.message}</p>
         </div>
       )}
     </div>

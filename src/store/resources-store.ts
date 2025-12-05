@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import type { Resource } from "@/types"
-import { resourcesService } from "@/services/resources-service"
+import axiosInstance from "@/services/api"
 
 interface ResourcesState {
   resources: Resource[]
@@ -23,45 +23,42 @@ export const useResourcesStore = create<ResourcesStore>((set, get) => ({
   fetchResources: async (classId?: string, subjectId?: string) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await resourcesService.getResources(classId, subjectId)
-      if (response.success && response.data) {
-        set({ resources: response.data, isLoading: false })
-      } else {
-        set({ error: response.error || "Failed to fetch resources", isLoading: false })
-      }
-    } catch (error) {
-      set({ error: "Network error occurred", isLoading: false })
+      // TODO: Integrate with backend Resource API
+      // const params = new URLSearchParams()
+      // if (classId) params.append("classId", classId)
+      // if (subjectId) params.append("subjectId", subjectId)
+      // const response = await axiosInstance.get(`/Resource/get-all-resources?${params}`)
+      // set({ resources: response.data.data, isLoading: false })
+      throw new Error("Resource API integration pending")
+    } catch (error: any) {
+      set({ error: error.response?.data?.message || "Failed to fetch resources", isLoading: false })
     }
   },
 
   uploadResource: async (resource) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await resourcesService.uploadResource(resource)
-      if (response.success && response.data) {
-        const { resources } = get()
-        set({ resources: [...resources, response.data], isLoading: false })
-      } else {
-        set({ error: response.error || "Failed to upload resource", isLoading: false })
-      }
-    } catch (error) {
-      set({ error: "Network error occurred", isLoading: false })
+      // TODO: Integrate with backend Resource API
+      // const response = await axiosInstance.post("/Resource/upload-resource", resource)
+      // const { resources } = get()
+      // set({ resources: [...resources, response.data.data], isLoading: false })
+      throw new Error("Resource API integration pending")
+    } catch (error: any) {
+      set({ error: error.response?.data?.message || "Failed to upload resource", isLoading: false })
     }
   },
 
   deleteResource: async (id) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await resourcesService.deleteResource(id)
-      if (response.success) {
-        const { resources } = get()
-        const filteredResources = resources.filter((r) => r.id !== id)
-        set({ resources: filteredResources, isLoading: false })
-      } else {
-        set({ error: response.error || "Failed to delete resource", isLoading: false })
-      }
-    } catch (error) {
-      set({ error: "Network error occurred", isLoading: false })
+      // TODO: Integrate with backend Resource API
+      // await axiosInstance.delete(`/Resource/delete-resource/${id}`)
+      // const { resources } = get()
+      // const filteredResources = resources.filter((r) => r.id !== id)
+      // set({ resources: filteredResources, isLoading: false })
+      throw new Error("Resource API integration pending")
+    } catch (error: any) {
+      set({ error: error.response?.data?.message || "Failed to delete resource", isLoading: false })
     }
   },
 
