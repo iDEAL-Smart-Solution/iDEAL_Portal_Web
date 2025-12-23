@@ -21,10 +21,24 @@ export const useResultsStore = create<ResultsStore>((set) => ({
   fetchResults: async (studentId: string) => {
     set({ isLoading: true, error: null })
     try {
-      // TODO: Integrate with backend Result API
-      // const response = await axiosInstance.get(`/Result/get-student-results?studentId=${studentId}`)
-      // set({ results: response.data.data, isLoading: false })
-      throw new Error("Result API integration pending")
+      const response = await axiosInstance.get(`/Student/results?studentId=${studentId}`)
+      
+      // Map backend response to frontend Result type
+      const mappedResults: Result[] = response.data.data.map((item: any) => ({
+        id: item.id,
+        studentId: studentId,
+        subjectId: item.subjectCode,
+        subjectName: item.subjectName,
+        subjectCode: item.subjectCode,
+        term: item.term,
+        academicYear: item.session,
+        score: item.totalScore,
+        grade: item.grade,
+        remarks: "",
+        createdAt: new Date().toISOString(),
+      }))
+      
+      set({ results: mappedResults, isLoading: false })
     } catch (error: any) {
       set({ error: error.response?.data?.message || "Failed to fetch results", isLoading: false })
     }

@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { useAuthStore, useResultsStore, usePaymentsStore, useAssignmentsStore } from "@/store"
+import { useAuthStore, useStudentDashboardStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { StatsCard } from "@/components/ui/stats-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,21 +13,15 @@ import { formatCurrency, formatDate, getGradeColor } from "@/lib/utils"
 export default function StudentDashboard() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { results, fetchResults, isLoading: resultsLoading } = useResultsStore()
-  const { payments, fetchPayments, isLoading: paymentsLoading } = usePaymentsStore()
-  const { assignments, fetchAssignments, isLoading: assignmentsLoading } = useAssignmentsStore()
+  const { dashboard, fetchDashboard, isLoading, error } = useStudentDashboardStore()
 
   useEffect(() => {
     if (user?.id) {
-      fetchResults(user.id)
-      fetchPayments(user.id)
-      if ((user as any).classId) {
-        fetchAssignments((user as any).classId)
-      }
+      fetchDashboard(user.id)
     }
-  }, [user?.id, fetchResults, fetchPayments, fetchAssignments])
+  }, [user?.id, fetchDashboard])
 
-  if (!user) {
+  if (!user || isLoading || !dashboard) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
@@ -37,46 +31,60 @@ export default function StudentDashboard() {
     )
   }
 
-  // Calculate stats
-  const pendingPayments = payments.filter((p) => p.status === "pending")
-  // const completedAssignments = assignments.filter((a) => new Date(a.dueDate) < new Date())
-  const upcomingAssignments = assignments.filter((a) => new Date(a.dueDate) >= new Date())
-  const averageGrade = results.length > 0 ? results.reduce((sum, r) => sum + r.score, 0) / results.length : 0
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-accent-500 font-medium mb-2">Error loading dashboard</p>
+            <p className="text-text-tertiary">{error}</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  const { stats, recentResults, upcomingAssignments, pendingPayments } = dashboard
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         {/* Welcome Section */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome back, {user.firstName}!</h1>
-          <p className="text-muted-foreground mt-2">Here's what's happening with your studies today.</p>
+          <h1 className="text-3xl font-bold text-text-primary">Welcome back, {user.firstName}!</h1>
+          <p className="text-text-tertiary mt-2">Here's what's happening with your studies today.</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
           <StatsCard
             title="Average Grade"
-            value={averageGrade > 0 ? `${averageGrade.toFixed(1)}%` : "N/A"}
+            value={stats.averageGrade > 0 ? `${stats.averageGrade.toFixed(1)}%` : "N/A"}
             description="Current academic performance"
             icon={TrendingUp}
-            trend={averageGrade > 75 ? { value: 5.2, isPositive: true } : undefined}
+            trend={stats.averageGrade > 75 ? { value: 5.2, isPositive: true } : undefined}
           />
           <StatsCard
             title="Pending Payments"
-            value={pendingPayments.length}
-            description={`${formatCurrency(pendingPayments.reduce((sum, p) => sum + p.amount, 0))} total`}
+            value={stats.pendingPaymentsCount}
+            description={`${formatCurrency(stats.totalPendingAmount)} total`}
             icon={CreditCard}
           />
           <StatsCard
             title="Active Assignments"
-            value={upcomingAssignments.length}
-            description="Due this week"
+            value={stats.upcomingAssignmentsCount}
+            description="Due soon"
             icon={BookOpen}
           />
-          <StatsCard title="Subjects" value={results.length} description="Currently enrolled" icon={FileText} />
+          <StatsCard 
+            title="Subjects" 
+            value={stats.totalSubjects} 
+            description="Currently enrolled" 
+            icon={FileText} 
+          />
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
           {/* Recent Results */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -89,25 +97,21 @@ export default function StudentDashboard() {
               </Button>
             </CardHeader>
             <CardContent>
-              {resultsLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <LoadingSpinner />
-                </div>
-              ) : results.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No results available yet</div>
+              {recentResults.length === 0 ? (
+                <div className="text-center py-8 text-text-tertiary">No results available yet</div>
               ) : (
                 <div className="space-y-4">
-                  {results.slice(0, 3).map((result) => (
+                  {recentResults.slice(0, 3).map((result) => (
                     <div key={result.id} className="flex items-center justify-between p-3 rounded-lg border">
                       <div>
-                        <p className="font-medium">Subject {result.subjectId}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {result.term} - {result.academicYear}
+                        <p className="font-medium text-text-primary">{result.subjectName}</p>
+                        <p className="text-sm text-text-tertiary">
+                          {result.term} - {result.session}
                         </p>
                       </div>
                       <div className="text-right">
                         <Badge className={getGradeColor(result.grade)}>{result.grade}</Badge>
-                        <p className="text-sm text-muted-foreground mt-1">{result.score}%</p>
+                        <p className="text-sm text-text-tertiary mt-1">{result.totalScore.toFixed(1)}%</p>
                       </div>
                     </div>
                   ))}
@@ -128,27 +132,23 @@ export default function StudentDashboard() {
               </Button>
             </CardHeader>
             <CardContent>
-              {assignmentsLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <LoadingSpinner />
-                </div>
-              ) : upcomingAssignments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No upcoming assignments</div>
+              {upcomingAssignments.length === 0 ? (
+                <div className="text-center py-8 text-text-tertiary">No upcoming assignments</div>
               ) : (
                 <div className="space-y-4">
                   {upcomingAssignments.slice(0, 3).map((assignment) => (
                     <div key={assignment.id} className="flex items-start gap-3 p-3 rounded-lg border">
                       <div className="flex-1">
-                        <p className="font-medium">{assignment.title}</p>
-                        <p className="text-sm text-muted-foreground line-clamp-2">{assignment.description}</p>
+                        <p className="font-medium text-text-primary">{assignment.title}</p>
+                        <p className="text-sm text-text-tertiary line-clamp-2">{assignment.description}</p>
                         <div className="flex items-center gap-2 mt-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Due {formatDate(assignment.dueDate)}</span>
+                          <Clock className="h-4 w-4 text-text-tertiary" />
+                          <span className="text-sm text-text-tertiary">Due {formatDate(assignment.dueDate)}</span>
                         </div>
                       </div>
-                      {new Date(assignment.dueDate).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000 && (
-                        <AlertCircle className="h-5 w-5 text-orange-500" />
-                      )}
+                      {assignment.isOverdue || new Date(assignment.dueDate).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000 ? (
+                        <AlertCircle className="h-5 w-5 text-warning-500" />
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -168,24 +168,23 @@ export default function StudentDashboard() {
               </Button>
             </CardHeader>
             <CardContent>
-              {paymentsLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <LoadingSpinner />
-                </div>
-              ) : pendingPayments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No pending payments</div>
+              {pendingPayments.length === 0 ? (
+                <div className="text-center py-8 text-text-tertiary">No pending payments</div>
               ) : (
                 <div className="space-y-4">
                   {pendingPayments.slice(0, 3).map((payment) => (
                     <div key={payment.id} className="flex items-center justify-between p-3 rounded-lg border">
                       <div>
-                        <p className="font-medium">{payment.description}</p>
-                        <p className="text-sm text-muted-foreground">Due {formatDate(payment.dueDate)}</p>
+                        <p className="font-medium text-text-primary">{payment.paymentType}</p>
+                        <p className="text-sm text-text-tertiary">Due {formatDate(payment.dueDate)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(payment.amount)}</p>
-                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                          Pending
+                        <p className="font-semibold text-text-primary">{formatCurrency(payment.amount)}</p>
+                        <Badge 
+                          variant="secondary" 
+                          className={payment.isOverdue ? "bg-accent-100 text-accent-700" : "bg-warning-100 text-warning-800"}
+                        >
+                          {payment.isOverdue ? "Overdue" : "Pending"}
                         </Badge>
                       </div>
                     </div>

@@ -5,8 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
+export function formatCurrency(amount: number, currency = "NGN"): string {
+  return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency,
   }).format(amount)
@@ -41,16 +41,12 @@ export function truncateText(text: string, maxLength: number): string {
 
 export function getGradeColor(grade: string): string {
   switch (grade.toUpperCase()) {
-    case "A+":
     case "A":
       return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900"
-    case "B+":
     case "B":
       return "text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900"
-    case "C+":
     case "C":
       return "text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900"
-    case "D+":
     case "D":
       return "text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900"
     case "F":

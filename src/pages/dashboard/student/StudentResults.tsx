@@ -48,9 +48,13 @@ export default function StudentResults() {
 
   const columns = [
     {
-      key: "subjectId" as keyof Result,
+      key: "subjectName" as keyof Result,
       label: "Subject",
-      render: (value: string) => <div className="font-medium">Subject {value}</div>,
+      render: (value: string, row: Result) => (
+        <div className="font-medium">
+          {value || row.subjectCode || "Unknown Subject"}
+        </div>
+      ),
     },
     {
       key: "term" as keyof Result,

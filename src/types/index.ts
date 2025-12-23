@@ -147,6 +147,8 @@ export interface Result {
   id: string
   studentId: string
   subjectId: string
+  subjectName?: string
+  subjectCode?: string
   term: string
   academicYear: string
   score: number
@@ -226,7 +228,7 @@ export interface ApiResponse<T> {
 }
 
 export interface LoginCredentials {
-  email: string
+  uin: string
   password: string
 }
 
@@ -252,5 +254,59 @@ export interface AdmissionApplication {
   applicationId: string;
   status: "pending" | "review" | "approved" | "rejected";
   studentId?: string;
+}
+
+// Student Dashboard Types
+export interface StudentDashboardResponse {
+  studentInfo: StudentInfo
+  stats: DashboardStats
+  recentResults: RecentResult[]
+  upcomingAssignments: UpcomingAssignment[]
+  pendingPayments: PendingPayment[]
+}
+
+export interface StudentInfo {
+  id: string
+  fullName: string
+  uin: string
+  email: string
+  className: string
+  profilePicture: string | null
+}
+
+export interface DashboardStats {
+  averageGrade: number
+  totalSubjects: number
+  pendingPaymentsCount: number
+  totalPendingAmount: number
+  upcomingAssignmentsCount: number
+}
+
+export interface RecentResult {
+  id: string
+  subjectName: string
+  subjectCode: string
+  totalScore: number
+  grade: string
+  term: string
+  session: string
+}
+
+export interface UpcomingAssignment {
+  id: string
+  title: string
+  description: string
+  dueDate: string
+  subjectName: string
+  isOverdue: boolean
+}
+
+export interface PendingPayment {
+  id: string
+  description: string
+  amount: number
+  dueDate: string
+  paymentType: string
+  isOverdue: boolean
 }
 

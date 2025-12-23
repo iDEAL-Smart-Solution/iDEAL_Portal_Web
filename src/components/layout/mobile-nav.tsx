@@ -45,8 +45,12 @@ const navigationItems = {
   ],
 }
 
-export function MobileNav() {
-  const [open, setOpen] = useState(false)
+interface MobileNavProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
@@ -58,47 +62,45 @@ export function MobileNav() {
   const handleLogout = () => {
     logout()
     navigate("/")
-    setOpen(false)
+    onOpenChange(false)
   }
 
   const handleNavigation = (href: string) => {
     navigate(href)
-    setOpen(false)
+    onOpenChange(false)
   }
 
   return (
-    <div className="lg:hidden">
-      <Header onMobileMenuToggle={() => setOpen(true)} />
-
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-72 p-0">
-          <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-gray-900 px-6 pb-4">
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="left" className="w-72 p-0 bg-background-primary">
+          <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-background-primary px-6 pb-4 h-full">
             {/* Logo */}
-            <div className="flex h-16 shrink-0 items-center">
+            <div className="flex h-16 shrink-0 items-center justify-center border-b border-neutral-200">
               <div className="flex items-center gap-2">
-                <GraduationCap className="h-8 w-8 text-primary" />
-                <span className="text-xl font-bold text-primary">iDEAL</span>
+                <GraduationCap className="h-8 w-8 text-primary-500" />
+                <span className="text-xl font-bold text-primary-600">iDEAL</span>
               </div>
             </div>
 
             {/* User Profile */}
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 transition-colors duration-200">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-primary-50 border border-primary-100">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={user.avatar || "/placeholder.svg"} alt={`${user.firstName} ${user.lastName}`} />
-                <AvatarFallback>
+                <AvatarFallback className="bg-primary-500 text-white">
                   {user.firstName[0]}
                   {user.lastName[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                <p className="text-sm font-medium text-text-primary truncate">
                   {user.firstName} {user.lastName}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user.role.replace("_", " ")}</p>
+                <p className="text-xs text-text-tertiary capitalize">{user.role.replace("_", " ")}</p>
               </div>
             </div>
 
-            <Separator />
+            <Separator className="bg-neutral-200" />
 
             {/* Navigation */}
             <nav className="flex flex-1 flex-col">
@@ -110,10 +112,11 @@ export function MobileNav() {
                       return (
                         <li key={item.name}>
                           <Button
-                            variant={isActive ? "secondary" : "ghost"}
+                            variant="ghost"
                             className={cn(
-                              "w-full justify-start gap-3 h-11 transition-all duration-200",
-                              isActive && "bg-primary/10 text-primary hover:bg-primary/20",
+                              "w-full justify-start gap-3 h-11 transition-all duration-200 text-text-secondary",
+                              isActive && "bg-primary-50 text-primary-700 border-l-4 border-primary-500 rounded-l-none hover:bg-primary-100",
+                              !isActive && "hover:bg-neutral-100"
                             )}
                             onClick={() => handleNavigation(item.href)}
                           >
@@ -132,7 +135,7 @@ export function MobileNav() {
                     <li>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start gap-3 h-11 transition-all duration-200"
+                        className="w-full justify-start gap-3 h-11 transition-all duration-200 text-text-secondary hover:bg-neutral-100"
                         onClick={() => handleNavigation("/settings")}
                       >
                         <Settings className="h-5 w-5" />
@@ -142,7 +145,7 @@ export function MobileNav() {
                     <li>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start gap-3 h-11 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 transition-all duration-200"
+                        className="w-full justify-start gap-3 h-11 text-accent-600 hover:text-accent-700 hover:bg-accent-50 transition-all duration-200"
                         onClick={handleLogout}
                       >
                         <LogOut className="h-5 w-5" />
@@ -156,6 +159,6 @@ export function MobileNav() {
           </div>
         </SheetContent>
       </Sheet>
-    </div>
+    </>
   )
 }

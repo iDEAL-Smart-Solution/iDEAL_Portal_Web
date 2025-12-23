@@ -25,10 +25,22 @@ export const usePaymentsStore = create<PaymentsStore>((set, get) => ({
   fetchPayments: async (studentId: string) => {
     set({ isLoading: true, error: null })
     try {
-      // TODO: Integrate with backend Payment API
-      // const response = await axiosInstance.get(`/Payment/get-student-payments?studentId=${studentId}`)
-      // set({ payments: response.data.data, isLoading: false })
-      throw new Error("Payment API integration pending")
+      const response = await axiosInstance.get(`/Payment/student-payments?studentId=${studentId}`)
+      
+      // Map backend response to frontend Payment type
+      const mappedPayments: Payment[] = response.data.data.map((item: any) => ({
+        id: item.id,
+        studentId: studentId,
+        paymentTypeId: "",
+        amount: item.amount,
+        status: item.status.toLowerCase(),
+        dueDate: item.datePaid,
+        paidDate: item.status.toLowerCase() === "completed" ? item.datePaid : undefined,
+        description: `${item.paymentType} - ${item.term} ${item.session}`,
+        createdAt: item.datePaid,
+      }))
+      
+      set({ payments: mappedPayments, isLoading: false })
     } catch (error: any) {
       set({ error: error.response?.data?.message || "Failed to fetch payments", isLoading: false })
     }

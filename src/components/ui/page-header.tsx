@@ -32,7 +32,7 @@ export function PageHeader({ title, description, actions, action, showBackButton
           </Button>
         )}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h1>
+          <h1 className="text-2xl font-bold text-primary-500">{title}</h1>
           {description && <p className="text-muted-foreground mt-1">{description}</p>}
         </div>
       </div>

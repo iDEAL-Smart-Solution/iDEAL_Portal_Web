@@ -23,14 +23,13 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null })
         try {
           const response = await axiosInstance.post("/Auth/login", {
-            uin: credentials.email, // Backend expects UIN, but we're using email field for now
+            uin: credentials.uin, 
             password: credentials.password
           })
           
           if (response.data.success && response.data.data) {
             const { user, token } = response.data.data
             
-            // Store token and schoolId in sessionStorage
             sessionStorage.setItem("token", token)
             sessionStorage.setItem("SchoolId", user.schoolId)
             
@@ -65,12 +64,9 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      register: async (data: RegisterData) => {
+      register: async () => {
         set({ isLoading: true, error: null })
         try {
-          // TODO: Integrate with backend Auth API - check if register endpoint exists
-          // const response = await axiosInstance.post("/Auth/register", data)
-          // For now, registration might need to go through aspirant creation instead
           throw new Error("Registration endpoint not yet integrated. Please use the Aspirant Application form.")
         } catch (error: any) {
           set({
@@ -81,7 +77,6 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
-        // TODO: Integrate with backend Auth API if needed
         sessionStorage.removeItem("token")
         sessionStorage.removeItem("SchoolId")
         set({
