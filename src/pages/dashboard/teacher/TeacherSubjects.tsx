@@ -150,7 +150,7 @@ export default function TeacherSubjects() {
           actions={
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700">
+                <Button className="">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Subject
                 </Button>

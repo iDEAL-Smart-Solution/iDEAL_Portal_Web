@@ -24,15 +24,28 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   fetchAssignments: async (classId?: string, teacherId?: string) => {
     set({ isLoading: true, error: null })
     try {
-      // TODO: Integrate with backend Assignments API
-      // const params = new URLSearchParams()
-      // if (classId) params.append("classId", classId)
-      // if (teacherId) params.append("teacherId", teacherId)
-      // const response = await axiosInstance.get(`/SubjectAssignment/get-all-assignments?${params}`)
-      // set({ assignments: response.data.data, isLoading: false })
-      throw new Error("Assignments API integration pending")
+      const response = await axiosInstance.get('/SubjectAssignment')
+      
+      // The backend returns the data directly, not wrapped
+      const data = Array.isArray(response.data) ? response.data : []
+      
+      // Map backend response to frontend Assignment type
+      const mappedAssignments: Assignment[] = data.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        description: item.instructions,
+        subjectId: item.subjectId,
+        classId: "",
+        teacherId: "",
+        dueDate: item.dueDate,
+        attachments: item.assignmentFile ? [item.assignmentFile] : [],
+        createdAt: new Date().toISOString(),
+      }))
+      
+      set({ assignments: mappedAssignments, isLoading: false })
     } catch (error: any) {
-      set({ error: error.response?.data?.message || "Failed to fetch assignments", isLoading: false })
+      console.error('Assignments fetch error:', error)
+      set({ error: error.response?.data?.message || error.message || "Failed to fetch assignments", isLoading: false })
     }
   },
 

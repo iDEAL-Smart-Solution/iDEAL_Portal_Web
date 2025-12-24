@@ -123,27 +123,27 @@ function App() {
 
           {/* Teacher routes */}
           <Route path="/dashboard/teacher" element={
-            <ProtectedRoute allowedRoles={['teacher']}>
+            <ProtectedRoute allowedRoles={['staff']}>
               <TeacherDashboard />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/teacher/subjects" element={
-            <ProtectedRoute allowedRoles={['teacher']}>
+            <ProtectedRoute allowedRoles={['staff']}>
               <TeacherSubjects />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/teacher/assignments" element={
-            <ProtectedRoute allowedRoles={['teacher']}>
+            <ProtectedRoute allowedRoles={['staff']}>
               <TeacherAssignments />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/teacher/classes" element={
-            <ProtectedRoute allowedRoles={['teacher']}>
+            <ProtectedRoute allowedRoles={['staff']}>
               <TeacherClasses />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/teacher/resources" element={
-            <ProtectedRoute allowedRoles={['teacher']}>
+            <ProtectedRoute allowedRoles={['staff']}>
               <TeacherResources />
             </ProtectedRoute>
           } />

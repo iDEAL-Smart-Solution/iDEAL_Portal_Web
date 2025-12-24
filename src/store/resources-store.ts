@@ -23,13 +23,25 @@ export const useResourcesStore = create<ResourcesStore>((set, get) => ({
   fetchResources: async (classId?: string, subjectId?: string) => {
     set({ isLoading: true, error: null })
     try {
-      // TODO: Integrate with backend Resource API
-      // const params = new URLSearchParams()
-      // if (classId) params.append("classId", classId)
-      // if (subjectId) params.append("subjectId", subjectId)
-      // const response = await axiosInstance.get(`/Resource/get-all-resources?${params}`)
-      // set({ resources: response.data.data, isLoading: false })
-      throw new Error("Resource API integration pending")
+      const response = await axiosInstance.get('/Resource/get-all-resources')
+      
+      // Map backend response to frontend Resource type
+      const mappedResources: Resource[] = response.data.data.map((item: any) => ({
+        id: item.id,
+        title: item.name,
+        description: item.description,
+        type: "other" as const,
+        url: item.media && item.media.length > 0 ? item.media[0].mediaUrl : "",
+        subjectId: "",
+        teacherId: "",
+        classIds: [],
+        createdAt: new Date().toISOString(),
+        subjectName: "",
+        link: item.media && item.media.length > 0 ? item.media[0].mediaUrl : "",
+        fileUrl: item.media && item.media.length > 0 ? item.media[0].mediaUrl : "",
+      }))
+      
+      set({ resources: mappedResources, isLoading: false })
     } catch (error: any) {
       set({ error: error.response?.data?.message || "Failed to fetch resources", isLoading: false })
     }

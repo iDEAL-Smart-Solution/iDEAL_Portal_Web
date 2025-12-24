@@ -34,6 +34,13 @@ const navigationItems = {
     { name: "Results", href: "/dashboard/parent/results", icon: FileText },
     { name: "Payments", href: "/dashboard/parent/payments", icon: CreditCard },
   ],
+  staff: [
+    { name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard },
+    { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
+    { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
+    { name: "My Classes", href: "/dashboard/teacher/classes", icon: Users },
+    { name: "Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
+  ],
   teacher: [
     { name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard },
     { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },

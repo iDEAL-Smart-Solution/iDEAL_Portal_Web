@@ -27,6 +27,13 @@ const navigationItems = {
     { id: "results", name: "Results", href: "/dashboard/parent/results", icon: FileText, description: "View academic results" },
     { id: "payments", name: "Payments", href: "/dashboard/parent/payments", icon: CreditCard, description: "Manage payments" },
   ],
+  staff: [
+    { id: "dashboard", name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard, description: "View dashboard overview" },
+    { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
+    { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
+    { id: "classes", name: "My Classes", href: "/dashboard/teacher/classes", icon: Users, description: "View your classes" },
+    { id: "subjects", name: "Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "Manage subjects" },
+  ],
   teacher: [
     { id: "dashboard", name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard, description: "View dashboard overview" },
     { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },

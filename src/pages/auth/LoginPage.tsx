@@ -19,7 +19,7 @@ export default function LoginPage() {
         case "parent":
           navigate("/dashboard/parent")
           break
-        case "teacher":
+        case "staff":
           navigate("/dashboard/teacher")
           break
         case "aspirant":

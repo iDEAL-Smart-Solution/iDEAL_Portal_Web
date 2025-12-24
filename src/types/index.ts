@@ -1,5 +1,5 @@
 // User roles and authentication types
-export type UserRole = "student" | "parent" | "teacher" | "aspirant"
+export type UserRole = "student" | "parent" | "staff" | "aspirant"
 
 export interface User {
   id: string
@@ -34,10 +34,15 @@ export interface Parent extends User {
   wardIds: string[] // Student IDs they are responsible for
 }
 
-export interface Teacher extends User {
-  role: "teacher"
+export interface Staff extends User {
+  role: "staff"
   subjectIds: string[]
   classIds: string[]
+}
+
+// Alias for backward compatibility
+export interface Teacher extends Staff {
+  role: "staff"
 }
 
 export interface Aspirant extends User {
