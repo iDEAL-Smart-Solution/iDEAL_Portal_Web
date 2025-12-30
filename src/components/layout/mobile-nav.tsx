@@ -23,10 +23,11 @@ import { cn } from "@/lib/utils"
 const navigationItems = {
   student: [
     { name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
-    { name: "Results", href: "/dashboard/student/results", icon: FileText },
+    { name: "My Results", href: "/dashboard/student/results", icon: FileText },
     { name: "Payments", href: "/dashboard/student/payments", icon: CreditCard },
     { name: "Assignments", href: "/dashboard/student/assignments", icon: BookOpen },
     { name: "Timetable", href: "/dashboard/student/timetable", icon: Calendar },
+    { name: "Resources", href: "/dashboard/student/resources", icon: Upload },
   ],
   parent: [
     { name: "Dashboard", href: "/dashboard/parent", icon: LayoutDashboard },
@@ -36,16 +37,15 @@ const navigationItems = {
   ],
   staff: [
     { name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard },
-    { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
+    { name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
-    { name: "My Classes", href: "/dashboard/teacher/classes", icon: Users },
-    { name: "Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
+    { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
   ],
   teacher: [
     { name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard },
-    { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
+    { name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
-    { name: "My Classes", href: "/dashboard/teacher/classes", icon: Users },
+    { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
   ],
   aspirant: [
     { name: "Dashboard", href: "/dashboard/aspirant", icon: LayoutDashboard },

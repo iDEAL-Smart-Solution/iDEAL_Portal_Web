@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { useAuthStore, useAssignmentsStore } from "@/store"
+import { useAuthStore, useAssignmentsStore, useSchoolStore, useStaffStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
 import { DataTable } from "@/components/ui/data-table"
@@ -27,7 +27,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { BookOpen, Plus, Calendar, Clock, Edit, Trash2, FileText } from "lucide-react"
 import { formatDate } from "@/lib/utils"
-import { mockSubjects, mockClasses } from "@/lib/mock-data"
 import type { Assignment } from "@/types"
 
 export default function TeacherAssignments() {
@@ -37,20 +36,24 @@ export default function TeacherAssignments() {
   const { user } = useAuthStore()
   const { assignments, fetchAssignments, createAssignment, updateAssignment, deleteAssignment, isLoading, error } =
     useAssignmentsStore()
+  const { fetchClasses } = useSchoolStore()
+  const { teacherSubjects, fetchTeacherSubjects } = useStaffStore()
   const [createDialogOpen, setCreateDialogOpen] = useState(showCreate)
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
   const [assignmentForm, setAssignmentForm] = useState({
     title: "",
-    description: "",
+    instructions: "",
     subjectId: "",
-    classId: "",
     dueDate: "",
-    attachments: [] as string[],
+    file: null as File | null,
   })
-
-  // Get teacher's subjects and classes
-  const teacherSubjects = mockSubjects.filter((s) => s.teacherId === user?.id)
-  const teacherClasses = mockClasses.filter((c) => c.teacherId === user?.id)
+  useEffect(() => {
+    if (user?.id) {
+      fetchTeacherSubjects(user.id)
+      fetchClasses()
+    }
+  }, [user, fetchTeacherSubjects, fetchClasses])
 
   useEffect(() => {
     if (user?.id) {
@@ -68,20 +71,18 @@ export default function TeacherAssignments() {
     if (editingAssignment) {
       setAssignmentForm({
         title: editingAssignment.title,
-        description: editingAssignment.description,
+        instructions: editingAssignment.instructions,
         subjectId: editingAssignment.subjectId,
-        classId: editingAssignment.classId,
-        dueDate: editingAssignment.dueDate.split("T")[0], // Format for date input
-        attachments: editingAssignment.attachments || [],
+        dueDate: editingAssignment.dueDate.split("T")[0],
+        file: null,
       })
     } else {
       setAssignmentForm({
         title: "",
-        description: "",
+        instructions: "",
         subjectId: "",
-        classId: "",
         dueDate: "",
-        attachments: [],
+        file: null,
       })
     }
   }, [editingAssignment])
@@ -98,13 +99,17 @@ export default function TeacherAssignments() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!assignmentForm.title || !assignmentForm.subjectId || !assignmentForm.classId || !assignmentForm.dueDate) return
+    if (!assignmentForm.title || !assignmentForm.subjectId || !assignmentForm.dueDate) return
 
+    setFormError(null)
     try {
-      const assignmentData = {
-        ...assignmentForm,
-        teacherId: user.id,
+      const assignmentData: any = {
+        title: assignmentForm.title,
+        instructions: assignmentForm.instructions,
+        subjectId: assignmentForm.subjectId,
         dueDate: new Date(assignmentForm.dueDate).toISOString(),
+        schoolId: user.schoolId,
+        assignmentFile: assignmentForm.file ? assignmentForm.file.name : null,
       }
 
       if (editingAssignment) {
@@ -117,13 +122,15 @@ export default function TeacherAssignments() {
 
       setAssignmentForm({
         title: "",
-        description: "",
+        instructions: "",
         subjectId: "",
-        classId: "",
         dueDate: "",
-        attachments: [],
+        file: null,
       })
-    } catch (error) {
+      setFormError(null)
+    } catch (error: any) {
+      const errorMessage = error.message || "Failed to create assignment"
+      setFormError(errorMessage)
       console.error("Assignment operation failed:", error)
     }
   }
@@ -173,14 +180,6 @@ export default function TeacherAssignments() {
       },
     },
     {
-      key: "classId" as keyof Assignment,
-      label: "Class",
-      render: (value: string) => {
-        const classItem = teacherClasses.find((c) => c.id === value)
-        return classItem ? classItem.name : `Class ${value}`
-      },
-    },
-    {
       key: "dueDate" as keyof Assignment,
       label: "Due Date",
       render: (value: string) => (
@@ -225,7 +224,7 @@ export default function TeacherAssignments() {
                   Create Assignment
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md bg-white">
                 <DialogHeader>
                   <DialogTitle>Create New Assignment</DialogTitle>
                   <DialogDescription>Add a new assignment for your students</DialogDescription>
@@ -243,55 +242,38 @@ export default function TeacherAssignments() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">Instructions</Label>
                     <Textarea
                       id="description"
-                      value={assignmentForm.description}
-                      onChange={(e) => setAssignmentForm({ ...assignmentForm, description: e.target.value })}
+                      value={assignmentForm.instructions}
+                      onChange={(e) => setAssignmentForm({ ...assignmentForm, instructions: e.target.value })}
                       placeholder="Assignment instructions and details"
                       rows={4}
                       required
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="subject">Subject</Label>
-                      <Select
-                        value={assignmentForm.subjectId}
-                        onValueChange={(value) => setAssignmentForm({ ...assignmentForm, subjectId: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select subject" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {teacherSubjects.map((subject) => (
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">Subject</Label>
+                    <Select
+                      value={assignmentForm.subjectId}
+                      onValueChange={(value) => setAssignmentForm({ ...assignmentForm, subjectId: value })}
+                    >
+                      <SelectTrigger className="z-auto">
+                        <SelectValue placeholder="Select subject" />
+                      </SelectTrigger>
+                      <SelectContent className="z-[200] bg-white max-h-[200px] overflow-y-auto" position="popper" sideOffset={5}>
+                        {teacherSubjects.length > 0 ? (
+                          teacherSubjects.map((subject) => (
                             <SelectItem key={subject.id} value={subject.id}>
-                              {subject.name}
+                              {subject.code}
                             </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="class">Class</Label>
-                      <Select
-                        value={assignmentForm.classId}
-                        onValueChange={(value) => setAssignmentForm({ ...assignmentForm, classId: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select class" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {teacherClasses.map((classItem) => (
-                            <SelectItem key={classItem.id} value={classItem.id}>
-                              {classItem.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                          ))
+                        ) : (
+                          <div className="p-2 text-sm text-muted-foreground">No subjects assigned</div>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
@@ -304,6 +286,25 @@ export default function TeacherAssignments() {
                       required
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="file">Assignment File (Optional)</Label>
+                    <Input
+                      id="file"
+                      type="file"
+                      onChange={(e) => setAssignmentForm({ ...assignmentForm, file: e.target.files?.[0] || null })}
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                    />
+                    {assignmentForm.file && (
+                      <p className="text-xs text-muted-foreground">Selected: {assignmentForm.file.name}</p>
+                    )}
+                  </div>
+
+                  {formError && (
+                    <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
+                      {formError}
+                    </div>
+                  )}
 
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -331,7 +332,7 @@ export default function TeacherAssignments() {
 
         {/* Edit Assignment Dialog */}
         <Dialog open={!!editingAssignment} onOpenChange={() => setEditingAssignment(null)}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md bg-white">
             <DialogHeader>
               <DialogTitle>Edit Assignment</DialogTitle>
               <DialogDescription>Update assignment details</DialogDescription>
@@ -349,55 +350,44 @@ export default function TeacherAssignments() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-description">Description</Label>
+                <Label htmlFor="edit-description">Instructions</Label>
                 <Textarea
                   id="edit-description"
-                  value={assignmentForm.description}
-                  onChange={(e) => setAssignmentForm({ ...assignmentForm, description: e.target.value })}
+                  value={assignmentForm.instructions}
+                  onChange={(e) => setAssignmentForm({ ...assignmentForm, instructions: e.target.value })}
                   placeholder="Assignment instructions and details"
                   rows={4}
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-subject">Subject</Label>
-                  <Select
-                    value={assignmentForm.subjectId}
-                    onValueChange={(value) => setAssignmentForm({ ...assignmentForm, subjectId: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select subject" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teacherSubjects.map((subject) => (
-                        <SelectItem key={subject.id} value={subject.id}>
-                          {subject.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {formError && (
+                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
+                  {formError}
                 </div>
+              )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="edit-class">Class</Label>
-                  <Select
-                    value={assignmentForm.classId}
-                    onValueChange={(value) => setAssignmentForm({ ...assignmentForm, classId: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teacherClasses.map((classItem) => (
-                        <SelectItem key={classItem.id} value={classItem.id}>
-                          {classItem.name}
+              <div className="space-y-2">
+                <Label htmlFor="edit-subject">Subject</Label>
+                <Select
+                  value={assignmentForm.subjectId}
+                  onValueChange={(value) => setAssignmentForm({ ...assignmentForm, subjectId: value })}
+                >
+                  <SelectTrigger className="z-auto">
+                    <SelectValue placeholder="Select subject" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[200] bg-white max-h-[200px] overflow-y-auto" position="popper" sideOffset={5}>
+                    {teacherSubjects.length > 0 ? (
+                      teacherSubjects.map((subject) => (
+                        <SelectItem key={subject.id} value={subject.id}>
+                          {subject.code}
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                      ))
+                    ) : (
+                      <div className="p-2 text-sm text-muted-foreground">No subjects assigned</div>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -409,6 +399,19 @@ export default function TeacherAssignments() {
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, dueDate: e.target.value })}
                   required
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-file">Assignment File (Optional)</Label>
+                <Input
+                  id="edit-file"
+                  type="file"
+                  onChange={(e) => setAssignmentForm({ ...assignmentForm, file: e.target.files?.[0] || null })}
+                  accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                />
+                {assignmentForm.file && (
+                  <p className="text-xs text-muted-foreground">Selected: {assignmentForm.file.name}</p>
+                )}
               </div>
 
               <div className="flex justify-end gap-2">

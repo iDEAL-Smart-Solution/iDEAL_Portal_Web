@@ -29,17 +29,15 @@ const navigationItems = {
   ],
   staff: [
     { id: "dashboard", name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard, description: "View dashboard overview" },
-    { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
+    { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
-    { id: "classes", name: "My Classes", href: "/dashboard/teacher/classes", icon: Users, description: "View your classes" },
-    { id: "subjects", name: "Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "Manage subjects" },
+    { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
   ],
   teacher: [
     { id: "dashboard", name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard, description: "View dashboard overview" },
-    { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
+    { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
-    { id: "classes", name: "My Classes", href: "/dashboard/teacher/classes", icon: Users, description: "View your classes" },
-    { id: "subjects", name: "Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "Manage subjects" },
+    { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
   ],
   aspirant: [
     { id: "dashboard", name: "Dashboard", href: "/dashboard/aspirant", icon: LayoutDashboard, description: "View your application status" },

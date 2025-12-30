@@ -20,8 +20,16 @@ export default function StudentTimetable() {
   const { timetable, fetchTimetable, isLoading, error } = useTimetableStore()
 
   useEffect(() => {
+    console.log('StudentTimetable - user:', user)
+    console.log('StudentTimetable - classId:', (user as any)?.classId)
+    
     if (user && (user as any).classId) {
+      console.log('Fetching timetable for classId:', (user as any).classId)
       fetchTimetable((user as any).classId)
+    } else if (user && !(user as any).classId) {
+      console.log('User is logged in but classId is missing. User needs to log out and log back in.')
+    } else {
+      console.log('Cannot fetch timetable - user or classId missing')
     }
   }, [user, fetchTimetable])
 
@@ -30,6 +38,26 @@ export default function StudentTimetable() {
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
           <LoadingSpinner size="lg" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  // Check if user has classId (for students who haven't logged out after backend update)
+  if (!(user as any).classId) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <PageHeader title="Class Timetable" description="Your weekly class schedule" />
+          <Card>
+            <CardContent className="pt-6">
+              <EmptyState
+                icon={Calendar}
+                title="Session Update Required"
+                description="Please log out and log back in to view your timetable."
+              />
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     )

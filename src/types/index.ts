@@ -165,12 +165,11 @@ export interface Result {
 export interface Assignment {
   id: string
   title: string
-  description: string
+  instructions: string
   subjectId: string
-  classId: string
-  teacherId: string
+  schoolId: string
   dueDate: string
-  attachments?: string[]
+  assignmentFile?: string | null
   createdAt: string
 }
 
@@ -183,7 +182,6 @@ export interface Resource {
   subjectId: string
   teacherId: string
   classIds: string[]
-  createdAt: string
   subjectName: string
   link: string
   fileUrl: string

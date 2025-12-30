@@ -1,10 +1,7 @@
-﻿
-
-import type React from "react"
-
+﻿import type React from "react"
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { useAuthStore, useResourcesStore } from "@/store"
+import { useAuthStore, useResourcesStore, useStaffStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
 import { DataTable } from "@/components/ui/data-table"
@@ -25,9 +22,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, FileText, Video, Image, File, Plus, Download, Trash2 } from "lucide-react"
-import { formatDate } from "@/lib/utils"
-import { mockSubjects, mockClasses } from "@/lib/mock-data"
+import { Upload, FileText, Video, Image, File, Plus, Download, Trash2, Link, StickyNote } from "lucide-react"
+import { mockClasses } from "@/lib/mock-data"
 import type { Resource } from "@/types"
 
 const resourceTypeIcons = {
@@ -36,6 +32,8 @@ const resourceTypeIcons = {
   video: Video,
   image: Image,
   other: File,
+  note: StickyNote,
+  link: Link,
 }
 
 export default function TeacherResources() {
@@ -43,24 +41,27 @@ export default function TeacherResources() {
   const showUpload = searchParams.get("action") === "upload"
 
   const { user } = useAuthStore()
-  const { resources, fetchResources, uploadResource, deleteResource, isLoading, error } = useResourcesStore()
+  const { resources, resourceTypes, fetchResourcesByUserId, fetchResourceTypes, uploadResource, deleteResource, isLoading, error } = useResourcesStore()
+  const { teacherSubjects, fetchTeacherSubjects } = useStaffStore()
   const [uploadDialogOpen, setUploadDialogOpen] = useState(showUpload)
   const [uploadForm, setUploadForm] = useState({
-    title: "",
+    name: "",
     description: "",
-    type: "pdf" as Resource["type"],
+    resourceTypeId: "",
     subjectId: "",
-    classIds: [] as string[],
-    url: "",
+    files: [] as File[],
   })
 
-  // Get teacher's subjects and classes
-  const teacherSubjects = mockSubjects.filter((s) => s.teacherId === user?.id)
+  // Get teacher's classes (keeping mock for now)
   const teacherClasses = mockClasses.filter((c) => c.teacherId === user?.id)
 
   useEffect(() => {
-    fetchResources()
-  }, [fetchResources])
+    if (user?.id) {
+      fetchResourcesByUserId(user.id)
+      fetchResourceTypes()
+      fetchTeacherSubjects(user.id)
+    }
+  }, [user?.id, fetchResourcesByUserId, fetchResourceTypes, fetchTeacherSubjects])
 
   useEffect(() => {
     if (showUpload) {
@@ -78,36 +79,66 @@ export default function TeacherResources() {
     )
   }
 
-  // Filter resources by teacher
-  const teacherResources = resources.filter((r) => r.teacherId === user.id)
+  
+  const teacherResources = resources
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!uploadForm.title || !uploadForm.subjectId || uploadForm.classIds.length === 0) return
+    
+    // Validation
+    if (!uploadForm.name) {
+      alert("Please enter a resource name")
+      return
+    }
+    
+    if (!uploadForm.resourceTypeId) {
+      alert("Please select a resource type")
+      return
+    }
+
+    if (!uploadForm.subjectId) {
+      alert("Please select a subject")
+      return
+    }
+    
+    if (uploadForm.files.length === 0) {
+      alert("Please select at least one file")
+      return
+    }
 
     try {
       await uploadResource({
-        ...uploadForm,
-        teacherId: user.id,
-        url: uploadForm.url || `/resources/${uploadForm.title.toLowerCase().replace(/\s+/g, "_")}.${uploadForm.type}`,
+        name: uploadForm.name,
+        description: uploadForm.description,
+        resourceTypeId: uploadForm.resourceTypeId,
+        subjectId: uploadForm.subjectId,
+        files: uploadForm.files,
       })
       setUploadDialogOpen(false)
       setUploadForm({
-        title: "",
+        name: "",
         description: "",
-        type: "pdf",
+        resourceTypeId: "",
         subjectId: "",
-        classIds: [],
-        url: "",
+        files: [],
       })
-    } catch (error) {
+      // Refetch user's resources after successful upload
+      if (user?.id) {
+        fetchResourcesByUserId(user.id)
+      }
+    } catch (error: any) {
       console.error("Upload failed:", error)
+      alert(error?.response?.data?.message || error?.message || "Failed to upload resource")
     }
   }
 
   const handleDelete = async (resourceId: string) => {
     if (confirm("Are you sure you want to delete this resource?")) {
       await deleteResource(resourceId)
+      // Refetch user's resources after deletion
+      if (user?.id) {
+        fetchResourcesByUserId(user.id)
+      }
     }
   }
 
@@ -164,11 +195,6 @@ export default function TeacherResources() {
       ),
     },
     {
-      key: "createdAt" as keyof Resource,
-      label: "Uploaded",
-      render: (value: string) => formatDate(value),
-    },
-    {
       key: "id" as keyof Resource,
       label: "Actions",
       render: (value: string, resource: Resource) => (
@@ -198,19 +224,25 @@ export default function TeacherResources() {
                   Upload Resource
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md bg-white">
                 <DialogHeader>
                   <DialogTitle>Upload New Resource</DialogTitle>
                   <DialogDescription>Add a new learning material for your students</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleUpload} className="space-y-4">
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-800">
+                      {error}
+                    </div>
+                  )}
+                  
                   <div className="space-y-2">
-                    <Label htmlFor="title">Title</Label>
+                    <Label htmlFor="name">Resource Name</Label>
                     <Input
-                      id="title"
-                      value={uploadForm.title}
-                      onChange={(e) => setUploadForm({ ...uploadForm, title: e.target.value })}
-                      placeholder="Resource title"
+                      id="name"
+                      value={uploadForm.name}
+                      onChange={(e) => setUploadForm({ ...uploadForm, name: e.target.value })}
+                      placeholder="Resource name"
                       required
                     />
                   </div>
@@ -226,84 +258,76 @@ export default function TeacherResources() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="type">Type</Label>
-                      <Select
-                        value={uploadForm.type}
-                        onValueChange={(value: Resource["type"]) => setUploadForm({ ...uploadForm, type: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pdf">PDF</SelectItem>
-                          <SelectItem value="doc">Document</SelectItem>
-                          <SelectItem value="video">Video</SelectItem>
-                          <SelectItem value="image">Image</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="resourceType">Resource Type</Label>
+                    <Select
+                      value={uploadForm.resourceTypeId}
+                      onValueChange={(value) => setUploadForm({ ...uploadForm, resourceTypeId: value })}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select resource type" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {resourceTypes.length === 0 ? (
+                          <div className="p-2 text-sm text-gray-500">
+                            No resource types available. Please contact admin.
+                          </div>
+                        ) : (
+                          resourceTypes.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>
+                              {type.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="subject">Subject</Label>
-                      <Select
-                        value={uploadForm.subjectId}
-                        onValueChange={(value) => setUploadForm({ ...uploadForm, subjectId: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select subject" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {teacherSubjects.map((subject) => (
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">Subject</Label>
+                    <Select
+                      value={uploadForm.subjectId}
+                      onValueChange={(value) => setUploadForm({ ...uploadForm, subjectId: value })}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select subject" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {teacherSubjects.length === 0 ? (
+                          <div className="p-2 text-sm text-gray-500">
+                            No subjects assigned. Please contact admin.
+                          </div>
+                        ) : (
+                          teacherSubjects.map((subject) => (
                             <SelectItem key={subject.id} value={subject.id}>
                               {subject.name}
                             </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Classes</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {teacherClasses.map((classItem) => (
-                        <label key={classItem.id} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={uploadForm.classIds.includes(classItem.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setUploadForm({
-                                  ...uploadForm,
-                                  classIds: [...uploadForm.classIds, classItem.id],
-                                })
-                              } else {
-                                setUploadForm({
-                                  ...uploadForm,
-                                  classIds: uploadForm.classIds.filter((id) => id !== classItem.id),
-                                })
-                              }
-                            }}
-                            className="rounded border-gray-300"
-                          />
-                          <span className="text-sm">{classItem.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="url">File URL (Optional)</Label>
+                    <Label htmlFor="files">Files</Label>
                     <Input
-                      id="url"
-                      value={uploadForm.url}
-                      onChange={(e) => setUploadForm({ ...uploadForm, url: e.target.value })}
-                      placeholder="https://example.com/file.pdf"
+                      id="files"
+                      type="file"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || [])
+                        setUploadForm({ ...uploadForm, files })
+                      }}
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.mp4,.avi"
+                      required
                     />
-                    <p className="text-xs text-muted-foreground">Leave empty to auto-generate based on title</p>
+                    {uploadForm.files.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        {uploadForm.files.length} file(s) selected
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-end gap-2">
@@ -353,7 +377,7 @@ export default function TeacherResources() {
         ) : (
           <>
             {/* Statistics Cards */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Resources</CardTitle>
@@ -384,27 +408,6 @@ export default function TeacherResources() {
                 <CardContent>
                   <div className="text-2xl font-bold">{teacherResources.filter((r) => r.type === "video").length}</div>
                   <p className="text-xs text-muted-foreground">Video materials</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">This Month</CardTitle>
-                  <Upload className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {
-                      teacherResources.filter((r) => {
-                        const uploadDate = new Date(r.createdAt)
-                        const now = new Date()
-                        return (
-                          uploadDate.getMonth() === now.getMonth() && uploadDate.getFullYear() === now.getFullYear()
-                        )
-                      }).length
-                    }
-                  </div>
-                  <p className="text-xs text-muted-foreground">Recent uploads</p>
                 </CardContent>
               </Card>
             </div>

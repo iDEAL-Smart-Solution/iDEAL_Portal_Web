@@ -26,20 +26,20 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
     try {
       const response = await axiosInstance.get('/SubjectAssignment')
       
-      // The backend returns the data directly, not wrapped
-      const data = Array.isArray(response.data) ? response.data : []
+      // The backend returns {success: true, data: [...]}
+      const data = response.data.data || response.data
+      const assignmentsArray = Array.isArray(data) ? data : []
       
       // Map backend response to frontend Assignment type
-      const mappedAssignments: Assignment[] = data.map((item: any) => ({
+      const mappedAssignments: Assignment[] = assignmentsArray.map((item: any) => ({
         id: item.id,
         title: item.title,
-        description: item.instructions,
+        instructions: item.instructions,
         subjectId: item.subjectId,
-        classId: "",
-        teacherId: "",
+        schoolId: item.schoolId,
         dueDate: item.dueDate,
-        attachments: item.assignmentFile ? [item.assignmentFile] : [],
-        createdAt: new Date().toISOString(),
+        assignmentFile: item.assignmentFile,
+        createdAt: item.dateCreated || new Date().toISOString(),
       }))
       
       set({ assignments: mappedAssignments, isLoading: false })
@@ -52,41 +52,78 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   createAssignment: async (assignment) => {
     set({ isLoading: true, error: null })
     try {
-      // TODO: Integrate with backend Assignments API
-      // const response = await axiosInstance.post("/SubjectAssignment/create-assignment", assignment)
-      // const { assignments } = get()
-      // set({ assignments: [...assignments, response.data.data], isLoading: false })
-      throw new Error("Assignments API integration pending")
+      const response = await axiosInstance.post("/SubjectAssignment", assignment)
+      const newAssignment = response.data.data || response.data
+      
+      const { assignments } = get()
+      
+      // Map backend response to frontend Assignment type
+      const mappedAssignment: Assignment = {
+        id: newAssignment.id,
+        title: newAssignment.title,
+        instructions: newAssignment.instructions,
+        subjectId: newAssignment.subjectId,
+        schoolId: newAssignment.schoolId,
+        dueDate: newAssignment.dueDate,
+        assignmentFile: newAssignment.assignmentFile,
+        createdAt: newAssignment.dateCreated || new Date().toISOString(),
+      }
+      
+      set({ assignments: [...assignments, mappedAssignment], isLoading: false })
     } catch (error: any) {
-      set({ error: error.response?.data?.message || "Failed to create assignment", isLoading: false })
+      console.error('Create assignment error:', error)
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || "Failed to create assignment"
+      set({ error: errorMessage, isLoading: false })
+      throw new Error(errorMessage)
     }
   },
 
   updateAssignment: async (id, assignment) => {
     set({ isLoading: true, error: null })
     try {
-      // TODO: Integrate with backend Assignments API
-      // const response = await axiosInstance.put(`/SubjectAssignment/update-assignment/${id}`, assignment)
-      // const { assignments } = get()
-      // const updatedAssignments = assignments.map((a) => (a.id === id ? response.data.data : a))
-      // set({ assignments: updatedAssignments, isLoading: false })
-      throw new Error("Assignments API integration pending")
+      const updateData = {
+        id,
+        ...assignment
+      }
+      const response = await axiosInstance.put("/SubjectAssignment", updateData)
+      const updatedAssignment = response.data.data || response.data
+      
+      const { assignments } = get()
+      
+      // Map backend response to frontend Assignment type
+      const mappedAssignment: Assignment = {
+        id: updatedAssignment.id,
+        title: updatedAssignment.title,
+        instructions: updatedAssignment.instructions,
+        subjectId: updatedAssignment.subjectId,
+        schoolId: updatedAssignment.schoolId,
+        dueDate: updatedAssignment.dueDate,
+        assignmentFile: updatedAssignment.assignmentFile,
+        createdAt: updatedAssignment.dateCreated || new Date().toISOString(),
+      }
+      
+      const updatedAssignments = assignments.map((a) => (a.id === id ? mappedAssignment : a))
+      set({ assignments: updatedAssignments, isLoading: false })
     } catch (error: any) {
-      set({ error: error.response?.data?.message || "Failed to update assignment", isLoading: false })
+      console.error('Update assignment error:', error)
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || "Failed to update assignment"
+      set({ error: errorMessage, isLoading: false })
+      throw new Error(errorMessage)
     }
   },
 
   deleteAssignment: async (id) => {
     set({ isLoading: true, error: null })
     try {
-      // TODO: Integrate with backend Assignments API
-      // await axiosInstance.delete(`/SubjectAssignment/delete-assignment/${id}`)
-      // const { assignments } = get()
-      // const filteredAssignments = assignments.filter((a) => a.id !== id)
-      // set({ assignments: filteredAssignments, isLoading: false })
-      throw new Error("Assignments API integration pending")
+      await axiosInstance.delete(`/SubjectAssignment/${id}`)
+      const { assignments } = get()
+      const filteredAssignments = assignments.filter((a) => a.id !== id)
+      set({ assignments: filteredAssignments, isLoading: false })
     } catch (error: any) {
-      set({ error: error.response?.data?.message || "Failed to delete assignment", isLoading: false })
+      console.error('Delete assignment error:', error)
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || "Failed to delete assignment"
+      set({ error: errorMessage, isLoading: false })
+      throw new Error(errorMessage)
     }
   },
 

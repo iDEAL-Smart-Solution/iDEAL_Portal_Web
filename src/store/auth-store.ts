@@ -44,7 +44,8 @@ export const useAuthStore = create<AuthStore>()(
                 schoolId: user.schoolId,
                 avatar: user.profilePicture,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
+                ...(user.classId && { classId: user.classId }) // Include classId for students
               },
               isAuthenticated: true,
               isLoading: false,
