@@ -15,6 +15,7 @@ interface ResourcesStore extends ResourcesState {
   fetchResourceTypes: () => Promise<void>
   uploadResource: (data: {name: string, description: string, resourceTypeId: string, subjectId?: string, files: File[]}) => Promise<void>
   deleteResource: (id: string) => Promise<void>
+  downloadResource: (url: string, filename: string) => Promise<void>
   clearError: () => void
 }
 
@@ -167,6 +168,79 @@ export const useResourcesStore = create<ResourcesStore>((set, get) => ({
     } catch (error: any) {
       set({ error: error.response?.data?.message || "Failed to delete resource", isLoading: false })
       throw error
+    }
+  },
+
+  downloadResource: async (url: string, filename: string) => {
+    try {
+      // Check if URL is an external URL (starts with http) or a relative path
+      const isExternalUrl = url.startsWith('http://') || url.startsWith('https://')
+      
+      // For relative paths (local wwwroot files), prepend the backend base URL
+      const fullUrl = isExternalUrl ? url : `http://localhost:5093${url}`
+      
+      let blob: Blob
+      
+      if (isExternalUrl) {
+        // For external URLs (e.g., Azure blob storage), use fetch with cors
+        const response = await fetch(fullUrl, {
+          method: 'GET',
+          mode: 'cors',
+        })
+        
+        if (!response.ok) {
+          throw new Error('Download failed')
+        }
+        
+        blob = await response.blob()
+      } else {
+        // For local wwwroot files, fetch directly without auth (static files)
+        const response = await fetch(fullUrl, {
+          method: 'GET',
+        })
+        
+        if (!response.ok) {
+          throw new Error('Download failed')
+        }
+        
+        blob = await response.blob()
+      }
+      
+      // Extract the actual filename from the URL if possible
+      const urlParts = url.split('/')
+      const urlFilename = urlParts[urlParts.length - 1].split('?')[0] // Remove query params
+      
+      // Remove the 4-character prefix added during upload (e.g., "e9e6" from "e9e6filename.docx")
+      // Check if filename starts with 4 alphanumeric characters
+      let cleanFilename = urlFilename
+      if (urlFilename.length > 4 && /^[a-zA-Z0-9]{4}/.test(urlFilename)) {
+        cleanFilename = urlFilename.substring(4) // Remove first 4 characters
+      }
+      
+      // Use the cleaned filename if it has an extension, otherwise use the provided filename
+      const finalFilename = cleanFilename.includes('.') ? decodeURIComponent(cleanFilename) : filename
+      
+      // Create a blob URL
+      const blobUrl = window.URL.createObjectURL(blob)
+      
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = finalFilename
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup after a short delay
+      setTimeout(() => {
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(blobUrl)
+      }, 100)
+    } catch (error) {
+      console.error('Download error:', error)
+      // Fallback: open in new tab if download fails
+      const fullUrl = url.startsWith('http') ? url : `http://localhost:5093${url}`
+      window.open(fullUrl, '_blank')
     }
   },
 

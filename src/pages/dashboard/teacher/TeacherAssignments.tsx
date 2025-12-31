@@ -174,9 +174,8 @@ export default function TeacherAssignments() {
     {
       key: "subjectId" as keyof Assignment,
       label: "Subject",
-      render: (value: string) => {
-        const subject = teacherSubjects.find((s) => s.id === value)
-        return subject ? subject.name : `Subject ${value}`
+      render: (value: string, assignment: Assignment) => {
+        return assignment.subjectCode || `Subject ${value}`
       },
     },
     {

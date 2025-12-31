@@ -11,7 +11,7 @@ import { BookOpen, File, Link2, PlayCircle, FileText, Download } from "lucide-re
 
 export default function StudentResources() {
   const { user } = useAuthStore()
-  const { resources, fetchResources, isLoading, error } = useResourcesStore()
+  const { resources, fetchResources, downloadResource, isLoading, error } = useResourcesStore()
 
   useEffect(() => {
     if (user && (user as any).classId) {
@@ -158,7 +158,7 @@ export default function StudentResources() {
                           variant="outline"
                           size="sm"
                           className="gap-2"
-                          onClick={() => window.open(resource.fileUrl, "_blank")}
+                          onClick={() => downloadResource(resource.fileUrl, resource.title)}
                         >
                           <Download className="h-4 w-4" />
                           Download

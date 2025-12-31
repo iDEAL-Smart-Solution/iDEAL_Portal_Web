@@ -146,6 +146,7 @@ export interface Subject {
   code: string
   schoolId: string
   teacherId: string
+  subjectCode?: string
 }
 
 export interface Result {
@@ -167,6 +168,7 @@ export interface Assignment {
   title: string
   instructions: string
   subjectId: string
+  subjectCode?: string
   schoolId: string
   dueDate: string
   assignmentFile?: string | null

@@ -140,28 +140,31 @@ export default function StudentAssignments() {
                             <CardTitle className="text-lg">{assignment.title}</CardTitle>
                             {getStatusBadge(assignment.dueDate)}
                           </div>
-                          <CardDescription className="text-base">{assignment.description}</CardDescription>
+                          <CardDescription className="text-base">{assignment.instructions}</CardDescription>
                         </div>
                         <div className="flex flex-col sm:items-end gap-2">
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Calendar className="h-4 w-4" />
                             Due {formatDate(assignment.dueDate)}
                           </div>
-                          <div className="text-sm text-muted-foreground">Subject {assignment.subjectId}</div>
+                          <div className="text-sm text-muted-foreground">{assignment.subjectCode}</div>
                         </div>
                       </div>
                     </CardHeader>
-                    {assignment.attachments && assignment.attachments.length > 0 && (
+                    {assignment.assignmentFile && (
                       <CardContent>
                         <div className="space-y-2">
-                          <h4 className="text-sm font-medium">Attachments:</h4>
+                          <h4 className="text-sm font-medium">Attachment:</h4>
                           <div className="flex flex-wrap gap-2">
-                            {assignment.attachments.map((attachment, index) => (
-                              <Button key={index} variant="outline" size="sm" className="gap-2 bg-transparent">
-                                <Download className="h-4 w-4" />
-                                {attachment}
-                              </Button>
-                            ))}
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="gap-2 bg-transparent"
+                              onClick={() => window.open(assignment.assignmentFile || '', '_blank')}
+                            >
+                              <Download className="h-4 w-4" />
+                              Download Assignment File
+                            </Button>
                           </div>
                         </div>
                       </CardContent>

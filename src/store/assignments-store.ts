@@ -24,7 +24,20 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   fetchAssignments: async (classId?: string, teacherId?: string) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await axiosInstance.get('/SubjectAssignment')
+      let response;
+      
+      // If classId is provided (student view), use class-based endpoint
+      if (classId) {
+        console.log('Fetching assignments for classId:', classId)
+        response = await axiosInstance.get(`/SubjectAssignment/by-class/${classId}`)
+      } else if (teacherId) {
+        // If teacherId is provided (teacher view), use staff-based endpoint
+        console.log('Fetching assignments for staffId:', teacherId)
+        response = await axiosInstance.get(`/SubjectAssignment/by-staff/${teacherId}`)
+      } else {
+        // Otherwise fetch all assignments (admin view)
+        response = await axiosInstance.get('/SubjectAssignment')
+      }
       
       // The backend returns {success: true, data: [...]}
       const data = response.data.data || response.data
@@ -40,6 +53,7 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
         dueDate: item.dueDate,
         assignmentFile: item.assignmentFile,
         createdAt: item.dateCreated || new Date().toISOString(),
+        subjectCode: item.subjectCode,
       }))
       
       set({ assignments: mappedAssignments, isLoading: false })
