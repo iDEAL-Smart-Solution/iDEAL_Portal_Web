@@ -10,7 +10,7 @@ interface ResourcesState {
 }
 
 interface ResourcesStore extends ResourcesState {
-  fetchResources: (classId?: string, subjectId?: string) => Promise<void>
+  fetchResources: (classId?: string) => Promise<void>
   fetchResourcesByUserId: (userId: string) => Promise<void>
   fetchResourceTypes: () => Promise<void>
   uploadResource: (data: {name: string, description: string, resourceTypeId: string, subjectId?: string, files: File[]}) => Promise<void>
@@ -25,7 +25,7 @@ export const useResourcesStore = create<ResourcesStore>((set, get) => ({
   isLoading: false,
   error: null,
 
-  fetchResources: async (classId?: string, subjectId?: string) => {
+  fetchResources: async (classId?: string) => {
     set({ isLoading: true, error: null })
     try {
       let response;
@@ -147,7 +147,7 @@ export const useResourcesStore = create<ResourcesStore>((set, get) => ({
         formData.append('Media', file)
       })
 
-      const response = await axiosInstance.post("/Resource/create-resource", formData)
+      await axiosInstance.post("/Resource/create-resource", formData)
       
       // Refresh the resources list
       await get().fetchResources()

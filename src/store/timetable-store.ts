@@ -10,13 +10,13 @@ interface TimetableState {
 
 interface TimetableStore extends TimetableState {
   fetchTimetable: (classId: string) => Promise<void>
-  createTimetableEntry: (entry: Omit<TimetableEntry, "id">) => Promise<void>
-  updateTimetableEntry: (id: string, entry: Partial<TimetableEntry>) => Promise<void>
-  deleteTimetableEntry: (id: string) => Promise<void>
+  createTimetableEntry: () => Promise<void>
+  updateTimetableEntry: () => Promise<void>
+  deleteTimetableEntry: () => Promise<void>
   clearError: () => void
 }
 
-export const useTimetableStore = create<TimetableStore>((set, get) => ({
+export const useTimetableStore = create<TimetableStore>((set) => ({
   timetable: [],
   isLoading: false,
   error: null,
@@ -64,7 +64,7 @@ export const useTimetableStore = create<TimetableStore>((set, get) => ({
     }
   },
 
-  createTimetableEntry: async (entry) => {
+  createTimetableEntry: async () => {
     set({ isLoading: true, error: null })
     try {
       // TODO: Integrate with backend TimeTable API
@@ -77,7 +77,7 @@ export const useTimetableStore = create<TimetableStore>((set, get) => ({
     }
   },
 
-  updateTimetableEntry: async (id, entry) => {
+  updateTimetableEntry: async () => {
     set({ isLoading: true, error: null })
     try {
       // TODO: Integrate with backend TimeTable API
@@ -91,7 +91,7 @@ export const useTimetableStore = create<TimetableStore>((set, get) => ({
     }
   },
 
-  deleteTimetableEntry: async (id) => {
+  deleteTimetableEntry: async () => {
     set({ isLoading: true, error: null })
     try {
       // TODO: Integrate with backend TimeTable API

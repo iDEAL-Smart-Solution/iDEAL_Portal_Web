@@ -34,7 +34,6 @@ export default function StudentResources() {
   const notes = resources.filter((r) => r.type === "note")
   const pdfs = resources.filter((r) => r.type === "pdf")
   const links = resources.filter((r) => r.type === "link")
-  const others = resources.filter((r) => r.type === "other")
 
   const iconForType = (type: string) => {
     switch (type) {

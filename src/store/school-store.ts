@@ -15,14 +15,14 @@ interface SchoolStore extends SchoolState {
   fetchSchools: () => Promise<void>
   fetchClasses: (schoolId?: string) => Promise<void>
   fetchSubjects: (schoolId?: string) => Promise<void>
-  fetchStudents: (schoolId: string) => Promise<void>
-  createSchool: (school: Omit<School, "id" | "createdAt">) => Promise<void>
-  updateSchool: (id: string, school: Partial<School>) => Promise<void>
-  deleteSchool: (id: string) => Promise<void>
+  fetchStudents: () => Promise<void>
+  createSchool: () => Promise<void>
+  updateSchool: () => Promise<void>
+  deleteSchool: () => Promise<void>
   clearError: () => void
 }
 
-export const useSchoolStore = create<SchoolStore>((set, get) => ({
+export const useSchoolStore = create<SchoolStore>((set) => ({
   schools: [],
   classes: [],
   subjects: [],
@@ -70,7 +70,7 @@ export const useSchoolStore = create<SchoolStore>((set, get) => ({
 
 
 
-  fetchStudents: async (schoolId: string) => {
+  fetchStudents: async () => {
     set({ isLoading: true, error: null })
     try {
       // TODO: Integrate with backend Student API
@@ -82,7 +82,7 @@ export const useSchoolStore = create<SchoolStore>((set, get) => ({
     }
   },
 
-  createSchool: async (school) => {
+  createSchool: async () => {
     set({ isLoading: true, error: null })
     try {
       // TODO: Integrate with backend School API
@@ -95,7 +95,7 @@ export const useSchoolStore = create<SchoolStore>((set, get) => ({
     }
   },
 
-  updateSchool: async (id, school) => {
+  updateSchool: async () => {
     set({ isLoading: true, error: null })
     try {
       // TODO: Integrate with backend School API
@@ -109,7 +109,7 @@ export const useSchoolStore = create<SchoolStore>((set, get) => ({
     }
   },
 
-  deleteSchool: async (id) => {
+  deleteSchool: async () => {
     set({ isLoading: true, error: null })
     try {
       // TODO: Integrate with backend School API
