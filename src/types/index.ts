@@ -199,6 +199,7 @@ export interface Payment {
   paidDate?: string
   description: string
   createdAt: string
+  transactionReference?: string
 }
 
 export interface PaymentType {

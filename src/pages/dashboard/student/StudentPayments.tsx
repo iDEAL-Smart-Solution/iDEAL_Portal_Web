@@ -1,36 +1,79 @@
-﻿
-
 import { useEffect, useState } from "react"
 import { useAuthStore, usePaymentsStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
-import { DataTable } from "@/components/ui/data-table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { EmptyState } from "@/components/ui/empty-state"
 import { StatusBadge } from "@/components/ui/status-badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CreditCard, DollarSign, Clock, CheckCircle, AlertCircle, XCircle } from "lucide-react"
+import { CreditCard, DollarSign, Clock, CheckCircle, XCircle } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import type { Payment } from "@/types"
+import { useToast } from "@/hooks/use-toast"
 
 export default function StudentPayments() {
   const { user } = useAuthStore()
-  const { payments, fetchPayments, makePayment, isLoading, error } = usePaymentsStore()
+  const { payments, outstandingPayments, fetchPaymentDashboard, initiatePayment, verifyPayment, isLoading, error, clearError } = usePaymentsStore()
   const [processingPayment, setProcessingPayment] = useState<string | null>(null)
+  const [verifyingPayment, setVerifyingPayment] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     if (user?.id) {
-      fetchPayments(user.id)
+      fetchPaymentDashboard(user.id)
     }
-  }, [user, fetchPayments])
+  }, [user, fetchPaymentDashboard])
 
-  const handlePayment = async (paymentId: string) => {
-    setProcessingPayment(paymentId)
+  useEffect(() => {
+    // Check for payment reference in URL
+    const urlParams = new URLSearchParams(window.location.search)
+    const reference = urlParams.get('reference')
+    
+    if (reference && user?.id && !verifyingPayment) {
+      setVerifyingPayment(true)
+      verifyPayment(reference).then((result) => {
+        if (result.success) {
+          toast({
+            variant: "success",
+            title: "Payment Successful",
+            description: result.message,
+          })
+          // Refresh payment dashboard
+          fetchPaymentDashboard(user.id)
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Payment Verification Failed",
+            description: result.message,
+          })
+        }
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname)
+        setVerifyingPayment(false)
+      })
+    }
+  }, [user, verifyPayment, toast, fetchPaymentDashboard, verifyingPayment])
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Payment Error",
+        description: error,
+      })
+      clearError()
+    }
+  }, [error, toast, clearError])
+
+  const handleInitiatePayment = async (paymentTypeId: string) => {
+    if (!user?.id) return
+    
+    setProcessingPayment(paymentTypeId)
     try {
-      await makePayment(paymentId)
+      await initiatePayment(user.id, paymentTypeId)
+    } catch (error) {
+      // Error is already set in the store
     } finally {
       setProcessingPayment(null)
     }
@@ -50,122 +93,65 @@ export default function StudentPayments() {
   const pendingPayments = payments.filter((p) => p.status === "pending")
   const completedPayments = payments.filter((p) => p.status === "completed")
   const failedPayments = payments.filter((p) => p.status === "failed")
-  const totalPending = pendingPayments.reduce((sum, p) => sum + p.amount, 0)
   const totalPaid = completedPayments.reduce((sum, p) => sum + p.amount, 0)
+  
+  // Check if a payment type has already been paid
+  const isPaymentMade = (paymentTypeId: string) => {
+    return payments.some(
+      (p) => p.paymentTypeId === paymentTypeId && (p.status === "completed" || p.status === "pending")
+    )
+  }
 
-  const columns = [
-    {
-      key: "description" as keyof Payment,
-      label: "Description",
-      render: (value: string) => <div className="font-medium">{value}</div>,
-    },
-    {
-      key: "amount" as keyof Payment,
-      label: "Amount",
-      render: (value: number) => <div className="font-semibold">{formatCurrency(value)}</div>,
-    },
-    {
-      key: "dueDate" as keyof Payment,
-      label: "Due Date",
-      render: (value: string) => formatDate(value),
-    },
-    {
-      key: "status" as keyof Payment,
-      label: "Status",
-      render: (value: string) => <StatusBadge status={value as any} />,
-    },
-    {
-      key: "paidDate" as keyof Payment,
-      label: "Paid Date",
-      render: (value: string) => (value ? formatDate(value) : "-"),
-    },
-    {
-      key: "id" as keyof Payment,
-      label: "Actions",
-      render: (value: string, payment: Payment) =>
-        payment.status === "pending" ? (
-          <Button size="sm" onClick={() => handlePayment(value)} disabled={processingPayment === value}>
-            {processingPayment === value ? (
-              <>
-                <LoadingSpinner size="sm" className="mr-2" />
-                Processing...
-              </>
-            ) : (
-              "Pay Now"
-            )}
-          </Button>
-        ) : payment.status === "failed" ? (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handlePayment(value)}
-            disabled={processingPayment === value}
-          >
-            {processingPayment === value ? (
-              <>
-                <LoadingSpinner size="sm" className="mr-2" />
-                Retrying...
-              </>
-            ) : (
-              "Retry Payment"
-            )}
-          </Button>
-        ) : (
-          <Badge variant="secondary">Completed</Badge>
-        ),
-    },
-  ]
+  // Calculate actual outstanding (unpaid) payments
+  const actualOutstandingPayments = outstandingPayments.filter(p => !isPaymentMade(p.paymentTypeId))
+  const totalOutstanding = actualOutstandingPayments.reduce((sum, p) => sum + p.amount, 0)
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader title="Payments" description="Manage your school fees and payments" />
 
+        {verifyingPayment && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
+            <LoadingSpinner size="sm" />
+            <p className="text-blue-700">Verifying your payment...</p>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <LoadingSpinner size="lg" />
           </div>
-        ) : error ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>Error loading payments: {error}</AlertDescription>
-          </Alert>
-        ) : payments.length === 0 ? (
-          <EmptyState
-            icon={CreditCard}
-            title="No Payments Found"
-            description="You don't have any payment records yet."
-          />
         ) : (
           <>
             {/* Statistics Cards */}
             <div className="grid gap-4 md:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Total Paid</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{pendingPayments.length}</div>
-                  <p className="text-xs text-muted-foreground">{formatCurrency(totalPending)} total</p>
+                  <div className="text-2xl font-bold">{formatCurrency(totalPaid)}</div>
+                  <p className="text-xs text-muted-foreground">{completedPayments.length} payments</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                  <Clock className="h-4 w-4 text-yellow-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{completedPayments.length}</div>
-                  <p className="text-xs text-muted-foreground">{formatCurrency(totalPaid)} paid</p>
+                  <div className="text-2xl font-bold">{pendingPayments.length}</div>
+                  <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Failed</CardTitle>
-                  <XCircle className="h-4 w-4 text-muted-foreground" />
+                  <XCircle className="h-4 w-4 text-red-600" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{failedPayments.length}</div>
@@ -175,39 +161,152 @@ export default function StudentPayments() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Payments</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
+                  <DollarSign className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{payments.length}</div>
-                  <p className="text-xs text-muted-foreground">All time</p>
+                  <div className="text-2xl font-bold">{actualOutstandingPayments.length}</div>
+                  <p className="text-xs text-muted-foreground">{formatCurrency(totalOutstanding)} total</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Urgent Payments Alert */}
-            {pendingPayments.some((p) => new Date(p.dueDate) < new Date()) && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  You have overdue payments. Please settle them as soon as possible to avoid late fees.
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* Outstanding Payments Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Outstanding Payments</CardTitle>
+                <p className="text-sm text-muted-foreground">All payment types for your class</p>
+              </CardHeader>
+              <CardContent>
+                {outstandingPayments.length === 0 ? (
+                  <EmptyState
+                    icon={CheckCircle}
+                    title="All Caught Up!"
+                    description="You have no outstanding payments at this time."
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    {outstandingPayments.map((payment) => {
+                      const alreadyPaid = isPaymentMade(payment.paymentTypeId)
+                      
+                      return (
+                      <div
+                        key={payment.paymentTypeId}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold">{payment.paymentTypeName}</h4>
+                            {payment.className && (
+                              <Badge variant="secondary" className="text-xs">
+                                {payment.className}
+                              </Badge>
+                            )}
+                            {alreadyPaid && (
+                              <Badge className="text-xs bg-green-100 text-green-800 hover:bg-green-100">
+                                Paid
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{payment.description}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="text-2xl font-bold">{formatCurrency(payment.amount)}</p>
+                          </div>
+                          <Button
+                            onClick={() => handleInitiatePayment(payment.paymentTypeId)}
+                            disabled={processingPayment === payment.paymentTypeId || alreadyPaid}
+                          >
+                            {processingPayment === payment.paymentTypeId ? (
+                              <>
+                                <LoadingSpinner size="sm" className="mr-2" />
+                                Processing...
+                              </>
+                            ) : alreadyPaid ? (
+                              <>
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Paid
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="w-4 h-4 mr-2" />
+                                Pay Now
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )})}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-            {/* Payments Table */}
-            <DataTable
-              title="Payment History"
-              description="Complete list of your payment records"
-              data={payments}
-              columns={columns}
-              searchable
-              searchPlaceholder="Search payments..."
-            />
+            {/* Payment History Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment History</CardTitle>
+                <p className="text-sm text-muted-foreground">Your previous payment transactions</p>
+              </CardHeader>
+              <CardContent>
+                {payments.length === 0 ? (
+                  <EmptyState
+                    icon={CreditCard}
+                    title="No Payment History"
+                    description="You haven't made any payments yet."
+                  />
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-muted/50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            Description
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            Amount
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            Date
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            Reference
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {payments.map((payment) => (
+                          <tr key={payment.id} className="hover:bg-muted/30">
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              <div className="font-medium">{payment.description}</div>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              <div className="font-semibold">{formatCurrency(payment.amount)}</div>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm">
+                              {formatDate(payment.paidDate || payment.createdAt)}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              <StatusBadge status={payment.status as any} />
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-xs text-muted-foreground">
+                              {payment.transactionReference || "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </>
         )}
       </div>
     </DashboardLayout>
   )
 }
-
