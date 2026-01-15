@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import { useAuthStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { StatsCard } from "@/components/ui/stats-card"
@@ -6,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Info } from "lucide-react"
+import { FileText, Clock, CheckCircle, XCircle, Info } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import type { Aspirant } from "@/types"
 

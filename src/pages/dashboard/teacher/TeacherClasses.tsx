@@ -8,26 +8,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Users, BookOpen, FileText, User } from "lucide-react"
-import { mockClasses, mockSubjects, mockUsers } from "@/lib/mock-data"
 
 export default function TeacherClasses() {
   const { user } = useAuthStore()
   const { results, fetchResults } = useResultsStore()
 
-  // Get teacher's classes and subjects
-  const teacherClasses = mockClasses.filter((c) => c.teacherId === user?.id)
-  const teacherSubjects = mockSubjects.filter((s) => s.teacherId === user?.id)
+  // Classes and subjects will come from API
+  const teacherClasses: any[] = []
+  const teacherSubjects: any[] = []
 
   useEffect(() => {
     if (user?.id) {
-      // Fetch results for all students in teacher's classes
-      const classes = mockClasses.filter((c) => c.teacherId === user.id)
-      classes.forEach((classItem) => {
-        const studentsInClass = mockUsers.filter((u) => u.role === "student" && (u as any).classId === classItem.id)
-        studentsInClass.forEach((student) => {
-          fetchResults(student.id)
-        })
-      })
+      // TODO: Fetch classes and students from API
+      // Then fetch results for students
     }
   }, [user?.id, fetchResults])
 
@@ -61,7 +54,7 @@ export default function TeacherClasses() {
       <div className="space-y-6">
         <PageHeader
           title="My Classes"
-          description={`Manage ${teacherClasses.length} ${teacherClasses.length === 1 ? "class" : "classes"} and ${teacherClasses.reduce((sum, c) => sum + c.studentCount, 0)} students`}
+          description={`Manage ${teacherClasses.length} ${teacherClasses.length === 1 ? "class" : "classes"} and ${teacherClasses.reduce((sum: number, c: any) => sum + c.studentCount, 0)} students`}
         />
 
         {/* Summary Stats */}
@@ -83,7 +76,7 @@ export default function TeacherClasses() {
               <User className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{teacherClasses.reduce((sum, c) => sum + c.studentCount, 0)}</div>
+              <div className="text-2xl font-bold">{teacherClasses.reduce((sum: number, c: any) => sum + c.studentCount, 0)}</div>
               <p className="text-xs text-muted-foreground">Across all classes</p>
             </CardContent>
           </Card>
@@ -113,19 +106,19 @@ export default function TeacherClasses() {
 
         {/* Classes Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {teacherClasses.map((classItem) => {
-            // Get students in this class
-            const studentsInClass = mockUsers.filter((u) => u.role === "student" && (u as any).classId === classItem.id)
+          {teacherClasses.map((classItem: any) => {
+            // Get students in this class - will come from API
+            const studentsInClass: any[] = []
 
             // Get results for students in this class
-            const classResults = results.filter((r) => studentsInClass.some((s) => s.id === r.studentId))
+            const classResults = results.filter((r) => studentsInClass.some((s: any) => s.id === r.studentId))
 
             // Calculate class average
             const classAverage =
               classResults.length > 0 ? classResults.reduce((sum, r) => sum + r.score, 0) / classResults.length : 0
 
             // Get subjects taught to this class
-            const classSubjects = teacherSubjects.filter((_s) => teacherClasses.some((c) => c.id === classItem.id))
+            const classSubjects = teacherSubjects.filter((_s: any) => teacherClasses.some((c: any) => c.id === classItem.id))
 
             return (
               <Card key={classItem.id}>
@@ -147,7 +140,7 @@ export default function TeacherClasses() {
                     <div>
                       <h4 className="text-sm font-medium mb-2">Subjects</h4>
                       <div className="flex flex-wrap gap-2">
-                        {classSubjects.map((subject) => (
+                        {classSubjects.map((subject: any) => (
                           <span
                             key={subject.id}
                             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
@@ -162,7 +155,7 @@ export default function TeacherClasses() {
                     <div>
                       <h4 className="text-sm font-medium mb-2">Recent Students</h4>
                       <div className="space-y-2">
-                        {studentsInClass.slice(0, 3).map((student) => {
+                        {studentsInClass.slice(0, 3).map((student: any) => {
                           const studentResults = results.filter((r) => r.studentId === student.id)
                           const studentAverage =
                             studentResults.length > 0

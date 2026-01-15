@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Users, CreditCard, FileText, TrendingUp, AlertCircle, Clock } from "lucide-react"
 import { formatCurrency, formatDate, getGradeColor, getInitials } from "@/lib/utils"
 import { useNavigate } from "react-router-dom"
-import { mockUsers } from "@/lib/mock-data"
 
 export default function ParentDashboard() {
   const navigate = useNavigate()
@@ -23,9 +22,9 @@ export default function ParentDashboard() {
   const { fetchAssignments } = useAssignmentsStore()
   const [selectedWard, setSelectedWard] = useState<string>("all")
 
-  // Get ward information
+  // Get ward information from user data
   const wardIds = (user as any)?.wardIds || []
-  const wards = mockUsers.filter((u) => wardIds.includes(u.id))
+  const wards: any[] = [] // Wards will come from API
 
   useEffect(() => {
     const userWardIds = (user as any)?.wardIds || []
@@ -33,12 +32,9 @@ export default function ParentDashboard() {
       // Fetch data for all wards
       userWardIds.forEach((wardId: string) => {
         fetchResults(wardId)
-        fetchPayments(wardId)
-        const ward = mockUsers.find((w) => w.id === wardId)
-        if (ward && (ward as any).classId) {
-          fetchAssignments((ward as any).classId)
-        }
       })
+      fetchPayments()
+      fetchAssignments()
     }
   }, [user, fetchResults, fetchPayments, fetchAssignments])
 
@@ -83,9 +79,9 @@ export default function ParentDashboard() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Children</SelectItem>
-                {wards.map((ward) => (
-                  <SelectItem key={ward.id} value={ward.id}>
-                    {ward.firstName} {ward.lastName}
+                {wardIds.map((wardId: string) => (
+                  <SelectItem key={wardId} value={wardId}>
+                    Child {wardId}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -104,7 +100,7 @@ export default function ParentDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {wards.map((ward) => {
+              {wards.map((ward: any) => {
                 const wardResults = results.filter((r) => r.studentId === ward.id)
                 const wardPayments = payments.filter((p) => p.studentId === ward.id && p.status === "pending")
                 const wardAverage =
@@ -202,7 +198,7 @@ export default function ParentDashboard() {
               ) : (
                 <div className="space-y-4">
                   {filteredResults.slice(0, 3).map((result) => {
-                    const student = wards.find((w) => w.id === result.studentId)
+                    const student = wards.find((w: any) => w.id === result.studentId)
                     return (
                       <div key={result.id} className="flex items-center justify-between p-3 rounded-lg border">
                         <div>
@@ -244,7 +240,7 @@ export default function ParentDashboard() {
               ) : (
                 <div className="space-y-4">
                   {pendingPayments.slice(0, 3).map((payment) => {
-                    const student = wards.find((w) => w.id === payment.studentId)
+                    const student = wards.find((w: any) => w.id === payment.studentId)
                     return (
                       <div key={payment.id} className="flex items-center justify-between p-3 rounded-lg border">
                         <div>

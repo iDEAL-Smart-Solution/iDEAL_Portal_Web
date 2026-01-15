@@ -23,7 +23,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Upload, FileText, Video, Image, File, Plus, Download, Trash2, Link, StickyNote } from "lucide-react"
-import { mockClasses } from "@/lib/mock-data"
 import type { Resource } from "@/types"
 
 const resourceTypeIcons = {
@@ -53,7 +52,7 @@ export default function TeacherResources() {
   })
 
   // Get teacher's classes (keeping mock for now)
-  const teacherClasses = mockClasses.filter((c) => c.teacherId === user?.id)
+  const teacherClasses: any[] = [] // Classes will come from API
 
   useEffect(() => {
     if (user?.id) {
@@ -184,7 +183,7 @@ export default function TeacherResources() {
       render: (value: string[]) => (
         <div className="flex flex-wrap gap-1">
           {value.map((classId) => {
-            const classItem = teacherClasses.find((c) => c.id === classId)
+            const classItem = teacherClasses.find((c: any) => c.id === classId)
             return (
               <Badge key={classId} variant="secondary" className="text-xs">
                 {classItem ? classItem.name : `Class ${classId}`}

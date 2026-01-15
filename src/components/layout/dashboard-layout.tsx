@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ReactNode, ReactElement } from "react"
 import { useState } from "react"
 import { useAuthStore } from "@/store"
 import { useLocation } from "react-router-dom"
@@ -20,7 +20,7 @@ interface DashboardLayoutProps {
   children: ReactNode
 }
 
-const pageInfo: Record<string, { title: string; desc: string; icon: JSX.Element }> = {
+const pageInfo: Record<string, { title: string; desc: string; icon: ReactElement }> = {
   student: {
     title: "Student Dashboard",
     desc: "View your academic information and activities",

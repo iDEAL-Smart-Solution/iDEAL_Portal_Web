@@ -18,7 +18,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CreditCard, DollarSign, Clock, CheckCircle, AlertCircle, XCircle, Users } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { mockUsers } from "@/lib/mock-data"
 import type { Payment } from "@/types"
 
 export default function ParentPayments() {
@@ -30,15 +29,13 @@ export default function ParentPayments() {
   const [selectedWard, setSelectedWard] = useState<string>(wardParam || "all")
   const [processingPayment, setProcessingPayment] = useState<string | null>(null)
 
-  // Get ward information
+  // Get ward information from API
   const wardIds = (user as any)?.wardIds || []
-  const wards = mockUsers.filter((u) => wardIds.includes(u.id))
+  const wards: any[] = [] // Wards will come from API
 
   useEffect(() => {
     if (wardIds.length > 0) {
-      wardIds.forEach((wardId: string) => {
-        fetchPayments(wardId)
-      })
+      fetchPayments()
     }
   }, [wardIds, fetchPayments])
 
@@ -51,7 +48,15 @@ export default function ParentPayments() {
   const handlePayment = async (paymentId: string) => {
     setProcessingPayment(paymentId)
     try {
-      await makePayment(paymentId)
+      // Find the payment to get details
+      const payment = payments.find(p => p.id === paymentId)
+      if (payment) {
+        await makePayment({
+          studentId: payment.studentId,
+          paymentTypeId: payment.paymentTypeId,
+          amount: payment.amount
+        })
+      }
     } finally {
       setProcessingPayment(null)
     }
@@ -82,7 +87,7 @@ export default function ParentPayments() {
       key: "studentId" as keyof Payment,
       label: "Student",
       render: (value: string) => {
-        const student = wards.find((w) => w.id === value)
+        const student = wards.find((w: any) => w.id === value)
         return (
           <div className="font-medium">{student ? `${student.firstName} ${student.lastName}` : "Unknown Student"}</div>
         )
@@ -163,7 +168,7 @@ export default function ParentPayments() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Children</SelectItem>
-                {wards.map((ward) => (
+                {wards.map((ward: any) => (
                   <SelectItem key={ward.id} value={ward.id}>
                     {ward.firstName} {ward.lastName}
                   </SelectItem>
@@ -276,7 +281,7 @@ export default function ParentPayments() {
                 <CardContent>
                   <div className="space-y-3">
                     {pendingPayments.slice(0, 5).map((payment) => {
-                      const student = wards.find((w) => w.id === payment.studentId)
+                      const student = wards.find((w: any) => w.id === payment.studentId)
                       const isOverdue = new Date(payment.dueDate) < new Date()
 
                       return (

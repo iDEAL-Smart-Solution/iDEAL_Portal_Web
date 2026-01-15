@@ -1,11 +1,9 @@
-import { useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { Header } from "./header"
 import {
   GraduationCap,
   LayoutDashboard,

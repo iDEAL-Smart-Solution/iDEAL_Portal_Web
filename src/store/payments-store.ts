@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { Payment, PaymentType } from "@/types"
+import type { Payment } from "@/types"
 import axiosInstance from "@/services/api"
 
 interface OutstandingPayment {
@@ -19,12 +19,14 @@ interface PaymentsState {
 
 interface PaymentsStore extends PaymentsState {
   fetchPaymentDashboard: (studentId: string) => Promise<void>
+  fetchPayments: () => Promise<void>
+  makePayment: (paymentData: { studentId: string; paymentTypeId: string; amount: number }) => Promise<void>
   initiatePayment: (studentId: string, paymentTypeId: string) => Promise<void>
   verifyPayment: (reference: string) => Promise<{ success: boolean; message: string }>
   clearError: () => void
 }
 
-export const usePaymentsStore = create<PaymentsStore>((set, get) => ({
+export const usePaymentsStore = create<PaymentsStore>((set) => ({
   payments: [],
   outstandingPayments: [],
   isLoading: false,
@@ -94,6 +96,33 @@ export const usePaymentsStore = create<PaymentsStore>((set, get) => ({
       const errorMsg = error.response?.data?.message || "Failed to verify payment"
       set({ error: errorMsg, isLoading: false })
       return { success: false, message: errorMsg }
+    }
+  },
+
+  fetchPayments: async () => {
+    set({ isLoading: true, error: null })
+    try {
+      // This is a placeholder implementation
+      // You can fetch from API or use existing fetchPaymentDashboard
+      set({ isLoading: false })
+    } catch (error: any) {
+      set({ error: error.response?.data?.message || "Failed to fetch payments", isLoading: false })
+    }
+  },
+
+  makePayment: async (paymentData: { studentId: string; paymentTypeId: string; amount: number }) => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await axiosInstance.post(`/Payment/initiate`, paymentData)
+      
+      // Redirect to payment gateway
+      if (response.data.authorizationUrl) {
+        window.location.href = response.data.authorizationUrl
+      }
+      set({ isLoading: false })
+    } catch (error: any) {
+      set({ error: error.response?.data?.message || "Failed to make payment", isLoading: false })
+      throw error
     }
   },
 

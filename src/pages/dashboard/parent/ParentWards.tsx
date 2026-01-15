@@ -13,7 +13,6 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { Users, FileText, CreditCard, TrendingUp, AlertCircle, Eye } from "lucide-react"
 import { formatCurrency, getInitials } from "@/lib/utils"
 import { useNavigate } from "react-router-dom"
-import { mockUsers } from "@/lib/mock-data"
 
 export default function ParentWards() {
   const navigate = useNavigate()
@@ -21,17 +20,17 @@ export default function ParentWards() {
   const { results, fetchResults } = useResultsStore()
   const { payments, fetchPayments } = usePaymentsStore()
 
-  // Get ward information
+  // Get ward information from API
   const wardIds = (user as any)?.wardIds || []
-  const wards = mockUsers.filter((u) => wardIds.includes(u.id))
+  const wards: any[] = [] // Wards will come from API
 
   useEffect(() => {
     const userWardIds = (user as any)?.wardIds || []
     if (userWardIds.length > 0) {
       userWardIds.forEach((wardId: string) => {
         fetchResults(wardId)
-        fetchPayments(wardId)
       })
+      fetchPayments()
     }
   }, [user, fetchResults, fetchPayments])
 
@@ -123,7 +122,7 @@ export default function ParentWards() {
 
         {/* Wards Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {wards.map((ward) => {
+          {wards.map((ward: any) => {
             const wardResults = results.filter((r) => r.studentId === ward.id)
             const wardPayments = payments.filter((p) => p.studentId === ward.id)
             const pendingPayments = wardPayments.filter((p) => p.status === "pending")

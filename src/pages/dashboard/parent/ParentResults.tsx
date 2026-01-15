@@ -13,7 +13,6 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FileText, TrendingUp, Award, Users } from "lucide-react"
 import { getGradeColor, formatDate } from "@/lib/utils"
-import { mockUsers } from "@/lib/mock-data"
 import type { Result } from "@/types"
 
 export default function ParentResults() {
@@ -24,9 +23,9 @@ export default function ParentResults() {
   const { results, fetchResults, isLoading, error } = useResultsStore()
   const [selectedWard, setSelectedWard] = useState<string>(wardParam || "all")
 
-  // Get ward information
+  // Get ward information from API
   const wardIds = (user as any)?.wardIds || []
-  const wards = mockUsers.filter((u) => wardIds.includes(u.id))
+  const wards: any[] = [] // Wards will come from API
 
   useEffect(() => {
     const userWardIds = (user as any)?.wardIds || []
@@ -75,7 +74,7 @@ export default function ParentResults() {
       key: "studentId" as keyof Result,
       label: "Student",
       render: (value: string) => {
-        const student = wards.find((w) => w.id === value)
+        const student = wards.find((w: any) => w.id === value)
         return (
           <div className="font-medium">{student ? `${student.firstName} ${student.lastName}` : "Unknown Student"}</div>
         )
@@ -129,7 +128,7 @@ export default function ParentResults() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Children</SelectItem>
-                {wards.map((ward) => (
+                {wards.map((ward: any) => (
                   <SelectItem key={ward.id} value={ward.id}>
                     {ward.firstName} {ward.lastName}
                   </SelectItem>
@@ -245,7 +244,7 @@ export default function ParentResults() {
                     {filteredResults
                       .filter((r) => r.score < 60)
                       .map((result) => {
-                        const student = wards.find((w) => w.id === result.studentId)
+                        const student = wards.find((w: any) => w.id === result.studentId)
                         return (
                           <div key={result.id} className="flex items-center justify-between text-sm">
                             <span>
