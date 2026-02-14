@@ -10,12 +10,15 @@ import {
   Users,
   Upload,
   LogOut,
+  ClipboardList,
+  ClipboardCheck,
 } from "lucide-react"
 
 const navigationItems = {
   student: [
     { id: "dashboard", name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard, description: "View your dashboard overview" },
     { id: "results", name: "My Results", href: "/dashboard/student/results", icon: FileText, description: "Check your academic results" },
+    { id: "report-card", name: "Report Card", href: "/dashboard/student/report-card", icon: ClipboardCheck, description: "View & print your report card" },
     { id: "payments", name: "Payments", href: "/dashboard/student/payments", icon: CreditCard, description: "View payment history" },
     { id: "assignments", name: "Assignments", href: "/dashboard/student/assignments", icon: BookOpen, description: "View and submit assignments" },
     { id: "timetable", name: "Timetable", href: "/dashboard/student/timetable", icon: Calendar, description: "Check your class schedule" },
@@ -31,12 +34,14 @@ const navigationItems = {
     { id: "dashboard", name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard, description: "View dashboard overview" },
     { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
+    { id: "results", name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList, description: "Upload student results" },
     { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
   ],
   teacher: [
     { id: "dashboard", name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard, description: "View dashboard overview" },
     { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
+    { id: "results", name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList, description: "Upload student results" },
     { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
   ],
   aspirant: [

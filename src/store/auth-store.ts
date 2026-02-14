@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { persist, createJSONStorage } from "zustand/middleware"
 import type { AuthState, LoginCredentials, RegisterData } from "@/types"
 import axiosInstance from "@/services/api"
 
@@ -92,6 +92,7 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: "auth-storage",
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,

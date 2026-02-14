@@ -34,4 +34,22 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// ── 401 Response Interceptor — auto-logout on expired / invalid token ──
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear all session data (token, SchoolId, and Zustand persisted auth)
+      sessionStorage.removeItem("token")
+      sessionStorage.removeItem("SchoolId")
+      sessionStorage.removeItem("auth-storage")
+      // Redirect to login (only if not already there)
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login"
+      }
+    }
+    return Promise.reject(error)
+  }
+);
+
 export default axiosInstance;

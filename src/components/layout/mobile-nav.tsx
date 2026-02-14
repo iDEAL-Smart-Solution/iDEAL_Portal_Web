@@ -15,6 +15,8 @@ import {
   Settings,
   Upload,
   LogOut,
+  ClipboardList,
+  ClipboardCheck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -22,6 +24,7 @@ const navigationItems = {
   student: [
     { name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
     { name: "My Results", href: "/dashboard/student/results", icon: FileText },
+    { name: "Report Card", href: "/dashboard/student/report-card", icon: ClipboardCheck },
     { name: "Payments", href: "/dashboard/student/payments", icon: CreditCard },
     { name: "Assignments", href: "/dashboard/student/assignments", icon: BookOpen },
     { name: "Timetable", href: "/dashboard/student/timetable", icon: Calendar },
@@ -37,12 +40,14 @@ const navigationItems = {
     { name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard },
     { name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
+    { name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList },
     { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
   ],
   teacher: [
     { name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard },
     { name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
+    { name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList },
     { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
   ],
   aspirant: [

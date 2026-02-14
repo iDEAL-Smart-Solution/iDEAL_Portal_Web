@@ -1,27 +1,182 @@
 ﻿
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useAuthStore, useResultsStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
 import { DataTable } from "@/components/ui/data-table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { EmptyState } from "@/components/ui/empty-state"
-import { FileText, TrendingUp, Award } from "lucide-react"
+import { FileText, TrendingUp, Award, Printer } from "lucide-react"
 import { getGradeColor, formatDate } from "@/lib/utils"
 import type { Result } from "@/types"
 
 export default function StudentResults() {
   const { user } = useAuthStore()
   const { results, fetchResults, isLoading, error } = useResultsStore()
+  const printRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (user?.id) {
       fetchResults(user.id)
     }
   }, [user, fetchResults])
+
+  const handlePrint = () => {
+    const printContent = printRef.current
+    if (!printContent) return
+
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+
+    const schoolName = sessionStorage.getItem('SchoolName') || 'School'
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Academic Results - ${user?.firstName} ${user?.lastName}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+          }
+          .header h1 { font-size: 24px; margin-bottom: 5px; }
+          .header h2 { font-size: 18px; color: #666; margin-bottom: 10px; }
+          .student-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+          }
+          .student-info p { margin: 5px 0; }
+          .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 5px;
+          }
+          .stat-item { text-align: center; }
+          .stat-item .value { font-size: 24px; font-weight: bold; color: #2563eb; }
+          .stat-item .label { font-size: 12px; color: #666; }
+          table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px;
+          }
+          th, td { 
+            border: 1px solid #ddd; 
+            padding: 12px 8px; 
+            text-align: left; 
+          }
+          th { 
+            background-color: #2563eb; 
+            color: white;
+            font-weight: bold;
+          }
+          tr:nth-child(even) { background-color: #f9f9f9; }
+          .grade-A { color: #15803d; font-weight: bold; }
+          .grade-B { color: #2563eb; font-weight: bold; }
+          .grade-C { color: #ca8a04; font-weight: bold; }
+          .grade-D { color: #ea580c; font-weight: bold; }
+          .grade-E, .grade-F { color: #dc2626; font-weight: bold; }
+          .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+          }
+          @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${schoolName}</h1>
+          <h2>Academic Results Report</h2>
+        </div>
+        
+        <div class="student-info">
+          <p><strong>Student Name:</strong> ${user?.firstName} ${user?.lastName}</p>
+          <p><strong>Generated On:</strong> ${new Date().toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat-item">
+            <div class="value">${averageScore.toFixed(1)}%</div>
+            <div class="label">Average Score</div>
+          </div>
+          <div class="stat-item">
+            <div class="value">${highestScore}%</div>
+            <div class="label">Highest Score</div>
+          </div>
+          <div class="stat-item">
+            <div class="value">${results.length}</div>
+            <div class="label">Total Subjects</div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Term</th>
+              <th>Session</th>
+              <th>Score</th>
+              <th>Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${results.map(result => `
+              <tr>
+                <td>${result.subjectName || result.subjectCode || 'Unknown'}</td>
+                <td>${result.term}</td>
+                <td>${result.academicYear}</td>
+                <td>${result.score}%</td>
+                <td class="grade-${result.grade}">${result.grade}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <p>This is an official academic results document generated from the iDEAL Portal</p>
+          <p>© ${new Date().getFullYear()} ${schoolName}. All rights reserved.</p>
+        </div>
+      </body>
+      </html>
+    `)
+    
+    printWindow.document.close()
+    printWindow.focus()
+    
+    // Wait for content to load before printing
+    setTimeout(() => {
+      printWindow.print()
+    }, 250)
+  }
 
   if (!user) {
     return (
@@ -88,8 +243,19 @@ export default function StudentResults() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <PageHeader title="Academic Results" description="View your academic performance and grades" />
+      <div className="space-y-6" ref={printRef}>
+        <PageHeader 
+          title="Academic Results" 
+          description="View your academic performance and grades"
+          actions={
+            results.length > 0 && (
+              <Button onClick={handlePrint} variant="outline">
+                <Printer className="h-4 w-4 mr-2" />
+                Print Results
+              </Button>
+            )
+          }
+        />
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">

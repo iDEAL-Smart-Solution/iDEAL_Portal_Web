@@ -16,6 +16,7 @@ import StudentDashboard from '@/pages/dashboard/student/StudentDashboard'
 import StudentAssignments from '@/pages/dashboard/student/StudentAssignments'
 import StudentPayments from '@/pages/dashboard/student/StudentPayments'
 import StudentResults from '@/pages/dashboard/student/StudentResults'
+import StudentReportCard from '@/pages/dashboard/student/StudentReportCard'
 import StudentTimetable from '@/pages/dashboard/student/StudentTimetable'
 import StudentResources from '@/pages/dashboard/student/StudentResources'
 
@@ -29,6 +30,7 @@ import TeacherAssignments from '@/pages/dashboard/teacher/TeacherAssignments'
 import TeacherClasses from '@/pages/dashboard/teacher/TeacherClasses'
 import TeacherResources from '@/pages/dashboard/teacher/TeacherResources'
 import TeacherSubjects from './pages/dashboard/teacher/TeacherSubjects'
+import TeacherResults from '@/pages/dashboard/teacher/TeacherResults'
 
 import AspirantDashboard from '@/pages/dashboard/aspirant/AspirantDashboard'
 
@@ -84,6 +86,11 @@ function App() {
           <Route path="/dashboard/student/results" element={
             <ProtectedRoute allowedRoles={['student']}>
               <StudentResults />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/student/report-card" element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentReportCard />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/student/timetable" element={
@@ -145,6 +152,11 @@ function App() {
           <Route path="/dashboard/teacher/resources" element={
             <ProtectedRoute allowedRoles={['staff']}>
               <TeacherResources />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/teacher/results" element={
+            <ProtectedRoute allowedRoles={['staff']}>
+              <TeacherResults />
             </ProtectedRoute>
           } />
 

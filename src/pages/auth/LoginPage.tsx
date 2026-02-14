@@ -37,7 +37,31 @@ export default function LoginPage() {
 
     try {
       await login({ uin, password })
-      // Redirect will be handled by the useEffect above
+      // Get the updated state after login
+      const state = useAuthStore.getState()
+      if (state.isAuthenticated && state.user) {
+        // Redirect to appropriate dashboard based on user role
+        switch (state.user.role) {
+          case "student":
+            navigate("/dashboard/student")
+            break
+          case "parent":
+            navigate("/dashboard/parent")
+            break
+          case "staff":
+            navigate("/dashboard/teacher")
+            break
+          case "aspirant":
+            navigate("/dashboard/aspirant")
+            break
+          default:
+            // User role doesn't belong to this portal
+            useAuthStore.getState().logout()
+            useAuthStore.setState({ 
+              error: "Access Denied: Your account does not have access to this portal. Please use the appropriate dashboard for your role." 
+            })
+        }
+      }
     } catch (error) {
       // Error handling is managed by the store
     }
@@ -46,11 +70,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
+      <div className="flex justify-center">
           <img 
-            src="/placeholder-logo.png" 
+            src="/logo.png" 
             alt="iDEAL Smart Solution Limited" 
-            className="w-16 h-16 object-contain"
+            className="h-16 w-auto object-contain"
           />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
