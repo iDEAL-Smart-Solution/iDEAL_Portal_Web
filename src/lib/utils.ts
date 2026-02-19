@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { BASE_URL } from "@/services/api"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -54,4 +55,12 @@ export function getGradeColor(grade: string): string {
     default:
       return "text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900"
   }
+}
+
+export function resolveMediaUrl(path?: string | null): string {
+  if (!path) return "/placeholder.svg"
+  if (/^https?:\/\//i.test(path)) return path
+  const apiOrigin = BASE_URL.replace(/\/api\/?$/i, "")
+  if (path.startsWith("/")) return `${apiOrigin}${path}`
+  return `${apiOrigin}/${path}`
 }

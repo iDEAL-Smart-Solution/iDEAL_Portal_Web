@@ -1,4 +1,5 @@
-import { useAuthStore } from "@/store"
+import { useAuthStore, useStudentDashboardStore } from "@/store"
+import { resolveMediaUrl } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -19,6 +20,7 @@ interface HeaderProps {
 export function Header({ onMobileMenuToggle }: HeaderProps) {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
+  const { dashboard } = useStudentDashboardStore()
 
   if (!user) return null
 
@@ -50,9 +52,9 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           <Button variant="ghost" size="sm" className="relative">
             <Bell className="h-5 w-5" />
             <span className="sr-only">View notifications</span>
-            {/* Notification badge */}
+            {/* Notification badge: use pending payments count when available */}
             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
-              3
+              {dashboard ? String(dashboard.pendingPayments.length || 0) : "3"}
             </span>
           </Button>
 
@@ -64,7 +66,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar || "/placeholder.svg"} alt={`${user.firstName} ${user.lastName}`} />
+                    <AvatarImage src={resolveMediaUrl(user.avatar)} alt={`${user.firstName} ${user.lastName}`} />
                   <AvatarFallback>
                     {user.firstName[0]}
                     {user.lastName[0]}
@@ -79,6 +81,15 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                     {user.firstName} {user.lastName}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                  {dashboard?.studentInfo?.className && (
+                    <p className="text-xs leading-none text-text-tertiary">Class: {dashboard.studentInfo.className}</p>
+                  )}
+                  {(dashboard?.recentResults?.[0]?.term || dashboard?.recentResults?.[0]?.session) && (
+                    <p className="text-xs leading-none text-text-tertiary">
+                      {dashboard.recentResults[0].term ? `Term: ${dashboard.recentResults[0].term}` : ""}
+                      {dashboard.recentResults[0].session ? ` • Session: ${dashboard.recentResults[0].session}` : ""}
+                    </p>
+                  )}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

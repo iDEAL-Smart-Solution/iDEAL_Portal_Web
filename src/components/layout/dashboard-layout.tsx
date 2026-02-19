@@ -1,6 +1,18 @@
 import type { ReactNode, ReactElement } from "react"
 import { useState } from "react"
-import { useAuthStore } from "@/store"
+import { useAuthStore, useStudentDashboardStore } from "@/store"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import { Settings, LogOut } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { resolveMediaUrl } from "@/lib/utils"
 import { useLocation } from "react-router-dom"
 import { Sidebar } from "./sidebar"
 import { MobileNav } from "./mobile-nav"
@@ -83,8 +95,50 @@ const pageInfo: Record<string, { title: string; desc: string; icon: ReactElement
   },
 }
 
+function DesktopProfile() {
+  const { user, logout } = useAuthStore()
+  const { dashboard } = useStudentDashboardStore()
+  const navigate = useNavigate()
+
+  if (!user) return null
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
+
+  return (
+    <details className="relative">
+      <summary className="list-none">
+        <div className="h-8 w-8 rounded-full overflow-hidden bg-neutral-100 flex items-center justify-center">
+          <img src={resolveMediaUrl(user.avatar)} alt={`${user.firstName} ${user.lastName}`} className="h-8 w-8 object-cover" />
+        </div>
+      </summary>
+      <div className="absolute right-0 mt-2 w-56 rounded-md border bg-white shadow-lg text-sm">
+        <div className="p-3">
+          <div className="font-medium">{user.firstName} {user.lastName}</div>
+          <div className="text-xs text-text-tertiary">{user.email}</div>
+          {dashboard?.studentInfo?.className && (
+            <div className="text-xs text-text-tertiary mt-2">Class: {dashboard.studentInfo.className}</div>
+          )}
+          {dashboard?.recentResults?.[0] && (
+            <div className="text-xs text-text-tertiary mt-1">
+              Term: {dashboard.recentResults[0].term} • Session: {dashboard.recentResults[0].session}
+            </div>
+          )}
+        </div>
+        <div className="border-t">
+          <button className="w-full text-left px-3 py-2 hover:bg-neutral-50" onClick={() => navigate('/settings')}>Settings</button>
+          <button className="w-full text-left px-3 py-2 text-red-600 hover:bg-neutral-50" onClick={handleLogout}>Sign out</button>
+        </div>
+      </div>
+    </details>
+  )
+}
+
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user } = useAuthStore()
+  const { dashboard } = useStudentDashboardStore()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -109,9 +163,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Mobile Header */}
         <header className="lg:hidden bg-background-primary border-b border-neutral-200 px-4 py-3 shadow-soft flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setMobileMenuOpen(true)}
               className="h-10 w-10 p-0"
             >
@@ -121,12 +175,44 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <h1 className="text-base font-semibold text-text-primary flex-1 truncate">
               {active?.title || "Dashboard"}
             </h1>
-            <Button variant="ghost" size="sm" className="h-10 w-10 p-0 relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-accent-500 text-xs text-white flex items-center justify-center">
-                3
-              </span>
-            </Button>
+
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="h-10 w-10 p-0 relative">
+                <Bell className="h-5 w-5" />
+                <span className="sr-only">View notifications</span>
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-accent-500 text-xs text-white flex items-center justify-center">
+                  {dashboard ? String(dashboard.pendingPayments.length || 0) : "3"}
+                </span>
+              </Button>
+
+              <div className="h-10 w-10">
+                <details className="relative">
+                  <summary className="list-none">
+                    <div className="h-10 w-10 rounded-full overflow-hidden bg-neutral-100 flex items-center justify-center">
+                      <img src={resolveMediaUrl(user.avatar)} alt={`${user.firstName} ${user.lastName}`} className="h-10 w-10 object-cover" />
+                    </div>
+                  </summary>
+                  <div className="absolute right-0 mt-2 w-56 rounded-md border bg-white shadow-lg text-sm">
+                    <div className="p-3">
+                      <div className="font-medium">{user.firstName} {user.lastName}</div>
+                      <div className="text-xs text-text-tertiary">{user.email}</div>
+                      {dashboard?.studentInfo?.className && (
+                        <div className="text-xs text-text-tertiary mt-2">Class: {dashboard.studentInfo.className}</div>
+                      )}
+                      {dashboard?.recentResults?.[0] && (
+                        <div className="text-xs text-text-tertiary mt-1">
+                          Term: {dashboard.recentResults[0].term} • Session: {dashboard.recentResults[0].session}
+                        </div>
+                      )}
+                    </div>
+                    <div className="border-t">
+                      <button className="w-full text-left px-3 py-2 hover:bg-neutral-50" onClick={() => window.location.assign('/settings')}>Settings</button>
+                      <button className="w-full text-left px-3 py-2 text-red-600 hover:bg-neutral-50" onClick={() => { sessionStorage.removeItem('token'); sessionStorage.removeItem('SchoolId'); window.location.assign('/'); }}>Sign out</button>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </div>
           </div>
         </header>
         
@@ -144,13 +230,29 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
 
             {/* Date Display */}
-            <div className="text-sm text-text-tertiary">
-              {new Date().toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-text-tertiary">
+                {new Date().toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="h-5 w-5" />
+                  <span className="sr-only">View notifications</span>
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-accent-500 text-xs text-white flex items-center justify-center">
+                    {dashboard ? String(dashboard.pendingPayments.length || 0) : "3"}
+                  </span>
+                </Button>
+
+                <div>
+                  <DesktopProfile />
+                </div>
+              </div>
             </div>
           </div>
         </header>

@@ -192,11 +192,11 @@ export default function StudentPayments() {
                       return (
                       <div
                         key={payment.paymentTypeId}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold">{payment.paymentTypeName}</h4>
+                            <h4 className="font-semibold text-sm sm:text-base truncate">{payment.paymentTypeName}</h4>
                             {payment.className && (
                               <Badge variant="secondary" className="text-xs">
                                 {payment.className}
@@ -208,30 +208,31 @@ export default function StudentPayments() {
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{payment.description}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{payment.description}</p>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="mt-3 sm:mt-0 flex items-center gap-4">
                           <div className="text-right">
-                            <p className="text-2xl font-bold">{formatCurrency(payment.amount)}</p>
+                            <p className="text-lg sm:text-2xl font-bold">{formatCurrency(payment.amount)}</p>
                           </div>
                           <Button
                             onClick={() => handleInitiatePayment(payment.paymentTypeId)}
                             disabled={processingPayment === payment.paymentTypeId || alreadyPaid}
+                            className="whitespace-nowrap"
                           >
                             {processingPayment === payment.paymentTypeId ? (
                               <>
                                 <LoadingSpinner size="sm" className="mr-2" />
-                                Processing...
+                                <span className="text-sm">Processing...</span>
                               </>
                             ) : alreadyPaid ? (
                               <>
                                 <CheckCircle className="w-4 h-4 mr-2" />
-                                Paid
+                                <span className="text-sm">Paid</span>
                               </>
                             ) : (
                               <>
                                 <CreditCard className="w-4 h-4 mr-2" />
-                                Pay Now
+                                <span className="text-sm">Pay Now</span>
                               </>
                             )}
                           </Button>
