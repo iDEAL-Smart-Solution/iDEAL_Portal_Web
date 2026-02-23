@@ -44,6 +44,7 @@ export const useTimetableStore = create<TimetableStore>((set) => ({
               id: slot.id || `${slot.day}-${slot.startTime}-${slot.subjectId}`,
               classId: timetableData.classId,
               subjectId: slot.subjectId || '',
+              subjectName: slot.subjectName || '',
               teacherId: slot.staffId || '',
               dayOfWeek: slot.day,
               startTime: slot.startTime,

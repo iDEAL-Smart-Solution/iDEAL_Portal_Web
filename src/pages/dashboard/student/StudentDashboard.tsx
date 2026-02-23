@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { useAuthStore, useStudentDashboardStore } from "@/store"
+import { useAuthStore, useStudentDashboardStore, useResultsStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { StatsCard } from "@/components/ui/stats-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,12 +14,15 @@ export default function StudentDashboard() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const { dashboard, fetchDashboard, isLoading, error } = useStudentDashboardStore()
-
   useEffect(() => {
-    if (user?.id) {
-      fetchDashboard(user.id)
+    const studentId = (user as any)?.studentId || user?.id
+    if (studentId) {
+      fetchDashboard(studentId)
     }
-  }, [user?.id, fetchDashboard])
+  }, [(user as any)?.studentId, user?.id, fetchDashboard])
+
+  // Always subscribe to results store so hooks order stays stable across renders
+  const results = useResultsStore((s) => s.results)
 
   if (!user || isLoading || !dashboard) {
     return (
@@ -46,6 +49,18 @@ export default function StudentDashboard() {
 
   const { stats, recentResults, upcomingAssignments, pendingPayments } = dashboard
 
+  // Compute previous average from any older results already loaded in the results store.
+  // This avoids extra network calls — if no older results are present, we won't show a trend.
+  let computedPreviousAverage: number | undefined = undefined
+  if (Array.isArray(results) && results.length > 0 && Array.isArray(recentResults) && recentResults.length > 0) {
+    const latest = recentResults[0]
+    const older = results.filter((r) => r.academicYear !== latest.session || r.term !== latest.term)
+    if (older.length > 0) {
+      const sum = older.reduce((acc, r) => acc + (r.score || 0), 0)
+      computedPreviousAverage = sum / older.length
+    }
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -62,7 +77,14 @@ export default function StudentDashboard() {
             value={stats.averageGrade > 0 ? `${stats.averageGrade.toFixed(1)}%` : "N/A"}
             description="Current academic performance"
             icon={TrendingUp}
-            trend={stats.averageGrade > 75 ? { value: 5.2, isPositive: true } : undefined}
+            trend={
+              typeof computedPreviousAverage === "number"
+                ? {
+                    value: Math.abs(Number((stats.averageGrade - computedPreviousAverage).toFixed(1))),
+                    isPositive: stats.averageGrade >= computedPreviousAverage,
+                  }
+                : undefined
+            }
           />
           <StatsCard
             title="Pending Payments"

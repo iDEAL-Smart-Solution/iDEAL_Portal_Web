@@ -20,17 +20,10 @@ export default function StudentTimetable() {
   const { timetable, fetchTimetable, isLoading, error } = useTimetableStore()
 
   useEffect(() => {
-    console.log('StudentTimetable - user:', user)
-    console.log('StudentTimetable - classId:', (user as any)?.classId)
     
     if (user && (user as any).classId) {
-      console.log('Fetching timetable for classId:', (user as any).classId)
       fetchTimetable((user as any).classId)
-    } else if (user && !(user as any).classId) {
-      console.log('User is logged in but classId is missing. User needs to log out and log back in.')
-    } else {
-      console.log('Cannot fetch timetable - user or classId missing')
-    }
+    } 
   }, [user, fetchTimetable])
 
   if (!user) {
@@ -139,7 +132,7 @@ export default function StudentTimetable() {
                       {todayClasses.map((entry) => (
                         <div key={entry.id} className="flex items-center justify-between p-3 rounded-lg border">
                           <div>
-                            <p className="font-medium">Subject {entry.subjectId}</p>
+                            <p className="font-medium">{entry.subjectName || `Subject ${entry.subjectId}`}</p>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
@@ -171,7 +164,7 @@ export default function StudentTimetable() {
                 <CardContent>
                   {nextClass ? (
                     <div className="p-4 rounded-lg border bg-primary/5">
-                      <h3 className="font-semibold text-lg">Subject {nextClass.subjectId}</h3>
+                      <h3 className="font-semibold text-lg">{nextClass.subjectName || `Subject ${nextClass.subjectId}`}</h3>
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
@@ -217,7 +210,7 @@ export default function StudentTimetable() {
                             {dayClasses.map((entry) => (
                               <Card key={entry.id} className="border-l-4 border-l-primary">
                                 <CardContent className="p-4">
-                                  <h4 className="font-medium">Subject {entry.subjectId}</h4>
+                                  <h4 className="font-medium">{entry.subjectName || `Subject ${entry.subjectId}`}</h4>
                                   <div className="space-y-1 mt-2 text-sm text-muted-foreground">
                                     <div className="flex items-center gap-1">
                                       <Clock className="h-3 w-3" />

@@ -216,6 +216,7 @@ export interface TimetableEntry {
   id: string
   classId: string
   subjectId: string
+  subjectName?: string
   teacherId: string
   dayOfWeek: number // 0-6 (Sunday-Saturday)
   day?: string
@@ -286,6 +287,7 @@ export interface DashboardStats {
   pendingPaymentsCount: number
   totalPendingAmount: number
   upcomingAssignmentsCount: number
+  previousAverage?: number
 }
 
 export interface RecentResult {
