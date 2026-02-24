@@ -143,9 +143,9 @@ export default function StudentResources() {
                           {resource.type}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      {/* <p className="text-sm text-muted-foreground">
                         Subject: {resource.subjectName || resource.subjectId}
-                      </p>
+                      </p> */}
                     </div>
                     <CardDescription>{resource.description}</CardDescription>
                   </CardHeader>

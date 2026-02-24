@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { BookOpen, CreditCard, FileText, Calendar, TrendingUp, Clock, AlertCircle } from "lucide-react"
 import { formatCurrency, formatDate, getGradeColor } from "@/lib/utils"
+import { SignatureUploader } from "@/components/signature/SignatureUploader"
 
 export default function StudentDashboard() {
   const navigate = useNavigate()
@@ -107,6 +108,22 @@ export default function StudentDashboard() {
         </div>
 
         <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+          {/* Signature upload (student) */}
+          <div className="col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle>Signature</CardTitle>
+                <CardDescription>Upload your signature (max 100KB)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SignatureUploader
+                  studentId={(user as any)?.id}
+                  isPrincipal={false}
+                  onUploaded={(url) => window.location.reload()} 
+                />
+              </CardContent>
+            </Card>
+          </div>
           {/* Recent Results */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
