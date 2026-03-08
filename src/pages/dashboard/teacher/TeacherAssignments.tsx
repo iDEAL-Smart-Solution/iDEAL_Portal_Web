@@ -103,20 +103,30 @@ export default function TeacherAssignments() {
 
     setFormError(null)
     try {
-      const assignmentData: any = {
-        title: assignmentForm.title,
-        instructions: assignmentForm.instructions,
-        subjectId: assignmentForm.subjectId,
-        dueDate: new Date(assignmentForm.dueDate).toISOString(),
-        schoolId: user.schoolId,
-        assignmentFile: assignmentForm.file ? assignmentForm.file.name : null,
-      }
-
       if (editingAssignment) {
+        const assignmentData: any = {
+          title: assignmentForm.title,
+          instructions: assignmentForm.instructions,
+          subjectId: assignmentForm.subjectId,
+          dueDate: new Date(assignmentForm.dueDate).toISOString(),
+          schoolId: user.schoolId,
+          assignmentFile: assignmentForm.file ? assignmentForm.file.name : null,
+        }
         await updateAssignment(editingAssignment.id, assignmentData)
         setEditingAssignment(null)
       } else {
-        await createAssignment(assignmentData)
+        // Create FormData for file upload
+        const formData = new FormData()
+        formData.append('title', assignmentForm.title)
+        formData.append('instructions', assignmentForm.instructions)
+        formData.append('subjectId', assignmentForm.subjectId)
+        formData.append('dueDate', new Date(assignmentForm.dueDate).toISOString())
+        formData.append('schoolId', user.schoolId || '')
+        if (assignmentForm.file) {
+          formData.append('assignmentFile', assignmentForm.file)
+        }
+        
+        await createAssignment(formData)
         setCreateDialogOpen(false)
       }
 

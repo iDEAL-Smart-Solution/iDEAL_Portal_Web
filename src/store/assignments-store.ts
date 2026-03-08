@@ -10,7 +10,7 @@ interface AssignmentsState {
 
 interface AssignmentsStore extends AssignmentsState {
   fetchAssignments: (classId?: string, teacherId?: string) => Promise<void>
-  createAssignment: (assignment: Omit<Assignment, "id" | "createdAt">) => Promise<void>
+  createAssignment: (assignment: Omit<Assignment, "id" | "createdAt"> | FormData) => Promise<void>
   updateAssignment: (id: string, assignment: Partial<Assignment>) => Promise<void>
   deleteAssignment: (id: string) => Promise<void>
   clearError: () => void
@@ -66,6 +66,7 @@ export const useAssignmentsStore = create<AssignmentsStore>((set, get) => ({
   createAssignment: async (assignment) => {
     set({ isLoading: true, error: null })
     try {
+      // Don't set Content-Type header for FormData - let browser set it with boundary
       const response = await axiosInstance.post("/SubjectAssignment", assignment)
       const newAssignment = response.data.data || response.data
       
