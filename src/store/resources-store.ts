@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import type { Resource } from "@/types"
 import axiosInstance from "@/services/api"
+import { resolveMediaUrl } from "@/lib/utils"
 
 interface ResourcesState {
   resources: Resource[]
@@ -177,7 +178,7 @@ export const useResourcesStore = create<ResourcesStore>((set, get) => ({
       const isExternalUrl = url.startsWith('http://') || url.startsWith('https://')
       
       // For relative paths (local wwwroot files), prepend the backend base URL
-      const fullUrl = isExternalUrl ? url : `http://localhost:5093${url}`
+      const fullUrl = isExternalUrl ? url : resolveMediaUrl(url)
       
       let blob: Blob
       
@@ -239,7 +240,7 @@ export const useResourcesStore = create<ResourcesStore>((set, get) => ({
     } catch (error) {
       console.error('Download error:', error)
       // Fallback: open in new tab if download fails
-      const fullUrl = url.startsWith('http') ? url : `http://localhost:5093${url}`
+      const fullUrl = url.startsWith('http') ? url : resolveMediaUrl(url)
       window.open(fullUrl, '_blank')
     }
   },
