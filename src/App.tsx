@@ -34,6 +34,13 @@ import TeacherResults from '@/pages/dashboard/teacher/TeacherResults'
 
 import AspirantDashboard from '@/pages/dashboard/aspirant/AspirantDashboard'
 
+const PORTAL_ALLOWED_ROLES = new Set(['student', 'parent', 'staff', 'aspirant'])
+
+const isAllowedPortalRole = (role?: string) => {
+  const normalizedRole = role?.trim().toLowerCase()
+  return normalizedRole ? PORTAL_ALLOWED_ROLES.has(normalizedRole) : false
+}
+
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: string[] }> = ({
   children,
@@ -46,7 +53,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: strin
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/auth/login" replace />
+  }
+
+  if (user && !isAllowedPortalRole(user.role)) {
+    useAuthStore.getState().logout()
+    return <Navigate to="/auth/login" replace />
   }
 
   return <>{children}</>
@@ -103,7 +115,11 @@ function App() {
           <Route path="/admission/status" element={<ApplicationStatus />} />
 
           {/* Admin */}
-          <Route path="/admin/admission" element={<AdminAdmissionApproval />} />
+          <Route path="/admin/admission" element={
+            <ProtectedRoute allowedRoles={['staff']}>
+              <AdminAdmissionApproval />
+            </ProtectedRoute>
+          } />
 
 
           {/* Parent routes */}

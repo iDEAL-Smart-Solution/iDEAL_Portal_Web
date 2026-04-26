@@ -3,6 +3,15 @@ import { persist, createJSONStorage } from "zustand/middleware"
 import type { AuthState, LoginCredentials, RegisterData } from "@/types"
 import axiosInstance from "@/services/api"
 
+const PORTAL_ALLOWED_ROLES = new Set(["student", "parent", "staff", "aspirant"])
+
+const normalizeRole = (role?: string) => role?.trim().toLowerCase() ?? ""
+
+const isAllowedPortalRole = (role?: string) => PORTAL_ALLOWED_ROLES.has(normalizeRole(role))
+
+const ACCESS_DENIED_MESSAGE =
+  "Access denied. Your account role does not have access to this portal."
+
 interface AuthStore extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
@@ -29,6 +38,22 @@ export const useAuthStore = create<AuthStore>()(
           
           if (response.data.success && response.data.data) {
             const { user, token } = response.data.data
+            const normalizedRole = normalizeRole(user.role)
+
+            if (!isAllowedPortalRole(normalizedRole)) {
+              sessionStorage.removeItem("token")
+              sessionStorage.removeItem("SchoolId")
+              sessionStorage.removeItem("auth-storage")
+
+              set({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                error: ACCESS_DENIED_MESSAGE,
+              })
+
+              return
+            }
             
             sessionStorage.setItem("token", token)
             sessionStorage.setItem("SchoolId", user.schoolId)
@@ -40,7 +65,7 @@ export const useAuthStore = create<AuthStore>()(
                 firstName: user.firstName,
                 lastName: user.lastName,
                 name: `${user.firstName} ${user.lastName}`,
-                role: user.role.toLowerCase(),
+                role: normalizedRole,
                 schoolId: user.schoolId,
                 avatar: user.profilePicture,
                 createdAt: new Date().toISOString(),
@@ -80,6 +105,7 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => {
         sessionStorage.removeItem("token")
         sessionStorage.removeItem("SchoolId")
+        sessionStorage.removeItem("auth-storage")
         set({
           user: null,
           isAuthenticated: false,
@@ -93,6 +119,18 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: "auth-storage",
       storage: createJSONStorage(() => sessionStorage),
+      onRehydrateStorage: () => (state) => {
+        if (!state?.user) {
+          return
+        }
+
+        if (!isAllowedPortalRole(state.user.role)) {
+          sessionStorage.removeItem("token")
+          sessionStorage.removeItem("SchoolId")
+          sessionStorage.removeItem("auth-storage")
+          state.logout()
+        }
+      },
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
