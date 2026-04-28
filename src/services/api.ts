@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getErrorMessage, showError, showSuccess } from "@/lib/notifications";
 
 // export const BASE_URL = "http://localhost:5093/api";
 export const BASE_URL = "https://portal-api.idealsmartsolutions.com/api";
@@ -13,6 +14,19 @@ const isAllowedPortalRole = (role?: string) => {
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
 });
+
+const SUCCESS_METHODS = new Set(["post", "put", "patch", "delete"]);
+
+const getResponseMessage = (data: any): string | undefined => {
+  if (!data) return undefined;
+  if (typeof data === "string") return data;
+  return data.message || data.details || data.error;
+};
+
+const isAuthLoginRequest = (config?: any) => {
+  const requestUrl = String(config?.url || "").toLowerCase();
+  return requestUrl.includes("/auth/login");
+};
 
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -62,7 +76,17 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const method = response.config?.method?.toLowerCase();
+    const shouldShowSuccess = method ? SUCCESS_METHODS.has(method) && !isAuthLoginRequest(response.config) : false;
+
+    if (shouldShowSuccess) {
+      const message = getResponseMessage(response.data) || "Operation completed successfully";
+      showSuccess(message);
+    }
+
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       sessionStorage.removeItem("token")
@@ -72,6 +96,9 @@ axiosInstance.interceptors.response.use(
         window.location.href = "/login"
       }
     }
+
+    showError(getErrorMessage(error));
+
     return Promise.reject(error)
   }
 );

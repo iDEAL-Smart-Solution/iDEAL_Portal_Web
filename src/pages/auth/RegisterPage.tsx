@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { GraduationCap, Eye, EyeOff } from "lucide-react"
 import type { UserRole } from "@/types"
+import { showError } from "@/lib/notifications"
 
 export default function RegisterPage() {
   const [searchParams] = useSearchParams()
@@ -37,17 +37,23 @@ export default function RegisterPage() {
     }
   }, [roleParam])
 
+  useEffect(() => {
+    if (error) {
+      showError(error)
+    }
+  }, [error])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     clearError()
 
     if (formData.password !== formData.confirmPassword) {
-      // Handle password mismatch
+      showError("Passwords do not match")
       return
     }
 
     if (!formData.role) {
-      // Handle missing role
+      showError("Please select a role")
       return
     }
 
@@ -101,12 +107,6 @@ export default function RegisterPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>

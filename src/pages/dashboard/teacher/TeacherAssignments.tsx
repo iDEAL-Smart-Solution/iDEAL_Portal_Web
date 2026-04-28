@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BookOpen, Plus, Calendar, Clock, Edit, Trash2, FileText } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import type { Assignment } from "@/types"
+import { showError } from "@/lib/notifications"
 
 export default function TeacherAssignments() {
   const [searchParams] = useSearchParams()
@@ -40,7 +41,6 @@ export default function TeacherAssignments() {
   const { teacherSubjects, fetchTeacherSubjects } = useStaffStore()
   const [createDialogOpen, setCreateDialogOpen] = useState(showCreate)
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null)
-  const [formError, setFormError] = useState<string | null>(null)
   const [assignmentForm, setAssignmentForm] = useState({
     title: "",
     instructions: "",
@@ -101,7 +101,6 @@ export default function TeacherAssignments() {
     e.preventDefault()
     if (!assignmentForm.title || !assignmentForm.subjectId || !assignmentForm.dueDate) return
 
-    setFormError(null)
     try {
       if (editingAssignment) {
         const assignmentData: any = {
@@ -137,10 +136,9 @@ export default function TeacherAssignments() {
         dueDate: "",
         file: null,
       })
-      setFormError(null)
     } catch (error: any) {
       const errorMessage = error.message || "Failed to create assignment"
-      setFormError(errorMessage)
+      showError(errorMessage)
       console.error("Assignment operation failed:", error)
     }
   }
@@ -309,12 +307,6 @@ export default function TeacherAssignments() {
                     )}
                   </div>
 
-                  {formError && (
-                    <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-                      {formError}
-                    </div>
-                  )}
-
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
                       Cancel
@@ -369,12 +361,6 @@ export default function TeacherAssignments() {
                   required
                 />
               </div>
-
-              {formError && (
-                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-                  {formError}
-                </div>
-              )}
 
               <div className="space-y-2">
                 <Label htmlFor="edit-subject">Subject</Label>

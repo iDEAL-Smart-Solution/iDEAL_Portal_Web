@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAdmissionStore } from "@/store/admission-store";
 import { CreateAspirantRequest } from "@/types/index";
+import { showError, showSuccess } from "@/lib/notifications";
 
 type AdmissionFormData = {
   firstName: string;
@@ -19,7 +20,6 @@ type AdmissionFormData = {
 
 export default function AdmissionForm() {
   const { createAspirant, loading, getAvailableClasses, availableClasses, classesLoading } = useAdmissionStore();
-  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
   // Fetch available classes on component mount
@@ -60,7 +60,7 @@ export default function AdmissionForm() {
     e.preventDefault();
     
     if (!profilePicture) {
-      setResult({ success: false, message: "Please upload a profile picture" });
+      showError("Please upload a profile picture");
       return;
     }
 
@@ -72,7 +72,11 @@ export default function AdmissionForm() {
       };
       
       const res = await createAspirant(requestData);
-      setResult(res);
+      if (res.success) {
+        showSuccess(res.message || "Application submitted successfully");
+      } else {
+        showError(res.message || "Failed to submit application");
+      }
       
       if (res.success) {
         // Reset form on success
@@ -93,7 +97,7 @@ export default function AdmissionForm() {
         setProfilePicture(null);
       }
     } catch (error: any) {
-      setResult({ success: false, message: error.message });
+      showError(error.message || "Failed to submit application");
     }
   };
 
@@ -235,12 +239,6 @@ export default function AdmissionForm() {
           {loading ? "Submitting..." : "Submit Application"}
         </button>
       </form>
-
-      {result && (
-        <div className={`mt-4 p-3 rounded ${result.success ? 'bg-green-100' : 'bg-red-100'}`}>
-          <p>{result.message}</p>
-        </div>
-      )}
     </div>
   );
 }

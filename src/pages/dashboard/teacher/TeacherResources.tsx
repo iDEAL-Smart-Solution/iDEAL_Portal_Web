@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Upload, FileText, Video, Image, File, Plus, Download, Trash2, Link, StickyNote } from "lucide-react"
 import type { Resource } from "@/types"
+import { showError, showSuccess } from "@/lib/notifications"
 
 const resourceTypeIcons = {
   pdf: FileText,
@@ -40,7 +41,7 @@ export default function TeacherResources() {
   const showUpload = searchParams.get("action") === "upload"
 
   const { user } = useAuthStore()
-  const { resources, resourceTypes, fetchResourcesByUserId, fetchResourceTypes, uploadResource, deleteResource, isLoading, error } = useResourcesStore()
+  const { resources, resourceTypes, fetchResourcesByUserId, fetchResourceTypes, uploadResource, deleteResource, isLoading } = useResourcesStore()
   const { teacherSubjects, fetchTeacherSubjects } = useStaffStore()
   const [uploadDialogOpen, setUploadDialogOpen] = useState(showUpload)
   const [uploadForm, setUploadForm] = useState({
@@ -86,22 +87,22 @@ export default function TeacherResources() {
     
     // Validation
     if (!uploadForm.name) {
-      alert("Please enter a resource name")
+      showError("Please enter a resource name")
       return
     }
     
     if (!uploadForm.resourceTypeId) {
-      alert("Please select a resource type")
+      showError("Please select a resource type")
       return
     }
 
     if (!uploadForm.subjectId) {
-      alert("Please select a subject")
+      showError("Please select a subject")
       return
     }
     
     if (uploadForm.files.length === 0) {
-      alert("Please select at least one file")
+      showError("Please select at least one file")
       return
     }
 
@@ -121,13 +122,14 @@ export default function TeacherResources() {
         subjectId: "",
         files: [],
       })
+      showSuccess("Resource uploaded successfully")
       // Refetch user's resources after successful upload
       if (user?.id) {
         fetchResourcesByUserId(user.id)
       }
     } catch (error: any) {
       console.error("Upload failed:", error)
-      alert(error?.response?.data?.message || error?.message || "Failed to upload resource")
+      showError(error?.response?.data?.message || error?.message || "Failed to upload resource")
     }
   }
 
@@ -229,12 +231,6 @@ export default function TeacherResources() {
                   <DialogDescription>Add a new learning material for your students</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleUpload} className="space-y-4">
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-800">
-                      {error}
-                    </div>
-                  )}
-                  
                   <div className="space-y-2">
                     <Label htmlFor="name">Resource Name</Label>
                     <Input
@@ -357,12 +353,6 @@ export default function TeacherResources() {
           <div className="flex items-center justify-center h-64">
             <LoadingSpinner size="lg" />
           </div>
-        ) : error ? (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center text-red-600">Error loading resources: {error}</div>
-            </CardContent>
-          </Card>
         ) : teacherResources.length === 0 ? (
           <EmptyState
             icon={Upload}

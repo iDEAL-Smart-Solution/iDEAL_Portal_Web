@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useAdmissionStore } from "@/store/admission-store";
 import { AdmissionStatus } from "@/types/index";
+import { showError, showSuccess } from "@/lib/notifications";
 
 export default function AdminAdmissionApproval() {
   const [id, setId] = useState("");
-  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
   const { updateAdmissionStatus, loading } = useAdmissionStore();
 
   const approve = async () => {
@@ -13,9 +13,13 @@ export default function AdminAdmissionApproval() {
         aspirantId: id,
         newStatus: AdmissionStatus.Approved
       });
-      setResult(res);
+      if (res.success) {
+        showSuccess(res.message || "Application approved successfully");
+      } else {
+        showError(res.message || "Failed to approve application");
+      }
     } catch (error: any) {
-      setResult({ success: false, message: error.message });
+      showError(error.message || "Failed to approve application");
     }
   };
 
@@ -37,12 +41,6 @@ export default function AdminAdmissionApproval() {
       >
         {loading ? "Processing..." : "Approve Application"}
       </button>
-
-      {result && (
-        <div className={`mt-4 p-4 border rounded ${result.success ? 'bg-green-100' : 'bg-red-100'}`}>
-          <p>{result.message}</p>
-        </div>
-      )}
     </div>
   );
 }

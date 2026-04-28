@@ -20,8 +20,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FileText, Plus, Upload, Users, BookOpen, CheckCircle, Eye, Edit, Trash2 } from "lucide-react"
+import { FileText, Plus, Upload, Users, BookOpen, Eye, Edit, Trash2 } from "lucide-react"
 import type { CreateResultDto, StudentForResult, DetailedResult } from "@/store/results-store"
+import { showError, showSuccess, showWarning } from "@/lib/notifications"
 
 export default function TeacherResults() {
   const { user } = useAuthStore()
@@ -48,8 +49,6 @@ export default function TeacherResults() {
   const [selectedTerm, setSelectedTerm] = useState<number>(1)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [bulkUploadMode, setBulkUploadMode] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   
   // Form state for individual result entry
@@ -120,11 +119,10 @@ export default function TeacherResults() {
   const handleIndividualSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedSubject || !resultForm.studentId || !currentSession) {
-      setFormError("Please fill in all required fields")
+      showError("Please fill in all required fields")
       return
     }
 
-    setFormError(null)
     try {
       const data: CreateResultDto = {
         studentId: resultForm.studentId,
@@ -139,7 +137,7 @@ export default function TeacherResults() {
       }
 
       await createResult(data)
-      setSuccessMessage("Result uploaded successfully!")
+      showSuccess("Result uploaded successfully!")
       setUploadDialogOpen(false)
       setResultForm({
         studentId: "",
@@ -149,21 +147,17 @@ export default function TeacherResults() {
         thirdCA: 0,
         exam: 0,
       })
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(null), 3000)
     } catch (err: any) {
-      setFormError(err.message || "Failed to upload result")
+      showError(err.message || "Failed to upload result")
     }
   }
 
   const handleBulkSubmit = async () => {
     if (!selectedSubject || !currentSession) {
-      setFormError("Please select a subject and ensure session is loaded")
+      showError("Please select a subject and ensure session is loaded")
       return
     }
 
-    setFormError(null)
     let successCount = 0
     let failCount = 0
 
@@ -191,11 +185,10 @@ export default function TeacherResults() {
     }
 
     if (successCount > 0) {
-      setSuccessMessage(`Successfully uploaded ${successCount} results${failCount > 0 ? `, ${failCount} failed` : ''}`)
+      showSuccess(`Successfully uploaded ${successCount} results${failCount > 0 ? `, ${failCount} failed` : ''}`)
       setBulkResults({})
-      setTimeout(() => setSuccessMessage(null), 5000)
     } else if (failCount > 0) {
-      setFormError(`Failed to upload ${failCount} results`)
+      showWarning(`Failed to upload ${failCount} results`)
     }
   }
 
@@ -214,17 +207,22 @@ export default function TeacherResults() {
   const handleDeleteResult = async (id: string) => {
     try {
       await deleteResult(id)
-      setSuccessMessage("Result deleted successfully!")
+      showSuccess("Result deleted successfully!")
       setDeleteConfirmId(null)
       // Refresh results
       if (selectedSubjectCode) {
         fetchResultsBySubject(selectedSubjectCode)
       }
-      setTimeout(() => setSuccessMessage(null), 3000)
     } catch (err: any) {
-      setFormError(err.message || "Failed to delete result")
+      showError(err.message || "Failed to delete result")
     }
   }
+
+  useEffect(() => {
+    if (error) {
+      showError(error)
+    }
+  }, [error])
 
   const getGradeBadgeColor = (grade: string) => {
     switch (grade) {
@@ -380,27 +378,6 @@ export default function TeacherResults() {
             View Results
           </Button>
         </div>
-
-        {/* Success Message */}
-        {successMessage && (
-          <Card className="bg-green-50 border-green-200">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-2 text-green-700">
-                <CheckCircle className="h-5 w-5" />
-                <span>{successMessage}</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <Card className="bg-red-50 border-red-200">
-            <CardContent className="pt-4">
-              <div className="text-red-700">{error}</div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Subject Selection Card */}
         <Card>
@@ -681,12 +658,6 @@ export default function TeacherResults() {
                 </table>
               </div>
 
-              {formError && (
-                <div className="mt-4 text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-                  {formError}
-                </div>
-              )}
-
               <div className="mt-6 flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setBulkResults({})}>
                   Clear All
@@ -799,12 +770,6 @@ export default function TeacherResults() {
                   {resultForm.firstCA + resultForm.secondCA + resultForm.thirdCA + resultForm.exam}
                 </p>
               </div>
-
-              {formError && (
-                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-                  {formError}
-                </div>
-              )}
 
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setUploadDialogOpen(false)}>

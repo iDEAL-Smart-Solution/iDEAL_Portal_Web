@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import type { AuthState, LoginCredentials, RegisterData } from "@/types"
 import axiosInstance from "@/services/api"
+import { showError } from "@/lib/notifications"
 
 const PORTAL_ALLOWED_ROLES = new Set(["student", "parent", "staff", "aspirant"])
 
@@ -52,6 +53,8 @@ export const useAuthStore = create<AuthStore>()(
                 error: ACCESS_DENIED_MESSAGE,
               })
 
+              showError(ACCESS_DENIED_MESSAGE)
+
               return
             }
             
@@ -81,12 +84,17 @@ export const useAuthStore = create<AuthStore>()(
               error: response.data.message || "Login failed",
               isLoading: false,
             })
+
+            showError(response.data.message || "Login failed")
           }
         } catch (error: any) {
+          const errorMessage = error.response?.data?.message || "Login failed"
           set({
-            error: error.response?.data?.message || "Login failed",
+            error: errorMessage,
             isLoading: false,
           })
+
+          showError(errorMessage)
         }
       },
 
@@ -95,10 +103,13 @@ export const useAuthStore = create<AuthStore>()(
         try {
           throw new Error("Registration endpoint not yet integrated. Please use the Aspirant Application form.")
         } catch (error: any) {
+          const errorMessage = error.response?.data?.message || error.message || "Registration failed"
           set({
-            error: error.response?.data?.message || error.message || "Registration failed",
+            error: errorMessage,
             isLoading: false,
           })
+
+          showError(errorMessage)
         }
       },
 
