@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { ToastProvider } from '@/components/ui/toast-provider'
 import { useAuthStore } from '@/store'
@@ -33,6 +33,7 @@ import TeacherSubjects from './pages/dashboard/teacher/TeacherSubjects'
 import TeacherResults from '@/pages/dashboard/teacher/TeacherResults'
 
 import AspirantDashboard from '@/pages/dashboard/aspirant/AspirantDashboard'
+import CompleteProfile from '@/pages/profile/CompleteProfile'
 
 const PORTAL_ALLOWED_ROLES = new Set(['student', 'parent', 'staff', 'aspirant'])
 
@@ -47,6 +48,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: strin
   allowedRoles
 }) => {
   const { isAuthenticated, user } = useAuthStore()
+  const location = useLocation()
 
   if (!isAuthenticated) {
     return <Navigate to="/auth/login" replace />
@@ -59,6 +61,17 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: strin
   if (user && !isAllowedPortalRole(user.role)) {
     useAuthStore.getState().logout()
     return <Navigate to="/auth/login" replace />
+  }
+
+  // If user was migrated from CBT but hasn't completed profile, force completion
+  // Allow access to the completion page itself to avoid redirect loop
+  if (
+    user &&
+    ((user.isMigrated === true) || (user.requiresProfileCompletion === true)) &&
+    (user.isProfileComplete === false) &&
+    location.pathname !== '/profile/complete'
+  ) {
+    return <Navigate to="/profile/complete" replace />
   }
 
   return <>{children}</>
@@ -180,6 +193,13 @@ function App() {
           <Route path="/dashboard/aspirant" element={
             <ProtectedRoute allowedRoles={['aspirant']}>
               <AspirantDashboard />
+            </ProtectedRoute>
+          } />
+
+          {/* Profile completion for migrated users */}
+          <Route path="/profile/complete" element={
+            <ProtectedRoute>
+              <CompleteProfile />
             </ProtectedRoute>
           } />
 

@@ -57,6 +57,13 @@ export function Sidebar() {
   if (!user) return null
 
   const navigation = navigationItems[user.role as keyof typeof navigationItems] || []
+  // If backend flagged profile as incomplete or user is migrated, surface a completion link
+  if ((user.requiresProfileCompletion || user.isMigrated) && user.isProfileComplete === false) {
+    // Avoid duplicate entry
+    if (!navigation.some((n) => n.id === "complete-profile")) {
+      navigation.unshift({ id: "complete-profile", name: "Complete Profile", href: "/profile/complete", icon: ClipboardCheck, description: "Finish required profile fields" })
+    }
+  }
   const currentPath = location.pathname
 
   const handleLogout = () => {

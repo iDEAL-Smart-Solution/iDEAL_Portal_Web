@@ -16,6 +16,11 @@ export default function LoginPage() {
     }
 
     if (isAuthenticated && user) {
+      // If migrated from CBT or backend indicates required profile completion, force profile completion
+      if ((user.isMigrated || user.requiresProfileCompletion) && user.isProfileComplete === false) {
+        navigate('/profile/complete')
+        return
+      }
       // Redirect to appropriate dashboard based on user role
       switch (user.role) {
         case "student":
@@ -45,6 +50,11 @@ export default function LoginPage() {
       // Get the updated state after login
       const state = useAuthStore.getState()
       if (state.isAuthenticated && state.user) {
+        // Force profile completion for migrated users or those flagged by backend with incomplete profile
+        if ((state.user.isMigrated || state.user.requiresProfileCompletion) && state.user.isProfileComplete === false) {
+          navigate('/profile/complete')
+          return
+        }
         // Redirect to appropriate dashboard based on user role
         switch (state.user.role) {
           case "student":

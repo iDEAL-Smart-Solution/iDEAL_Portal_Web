@@ -60,6 +60,22 @@ export const useAuthStore = create<AuthStore>()(
             
             sessionStorage.setItem("token", token)
             sessionStorage.setItem("SchoolId", user.schoolId)
+                        // Also store the full user response for profile completion page
+                        sessionStorage.setItem("auth-response", JSON.stringify({
+                          id: user.id,
+                          firstName: user.firstName,
+                          lastName: user.lastName,
+                          email: user.email,
+                                      phoneNumber: user.phoneNumber,
+                                      gender: user.gender,
+                          role: user.role,
+                          schoolId: user.schoolId,
+                          isMigrated: user.isMigrated,
+                          isProfileComplete: user.isProfileComplete,
+                          requiresProfileCompletion: user.requiresProfileCompletion,
+                          missingProfileFields: user.missingProfileFields
+                        }))
+            
             
             set({
               user: {
@@ -71,9 +87,20 @@ export const useAuthStore = create<AuthStore>()(
                 role: normalizedRole,
                 schoolId: user.schoolId,
                 avatar: user.profilePicture,
+                phoneNumber: user.phoneNumber,
+                gender: user.gender,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 ...(user.classId && { classId: user.classId }) // Include classId for students
+                ,
+                // include optional migration/profile flags if backend provides them
+                ...(user.isMigrated !== undefined && { isMigrated: Boolean(user.isMigrated) }),
+                ...(user.requiresProfileCompletion !== undefined && { requiresProfileCompletion: Boolean(user.requiresProfileCompletion) }),
+                ...(user.missingProfileFields && { missingProfileFields: user.missingProfileFields }),
+                // isProfileComplete: prefer explicit flag, otherwise infer from requiresProfileCompletion
+                ...(user.isProfileComplete !== undefined
+                  ? { isProfileComplete: Boolean(user.isProfileComplete) }
+                  : (user.requiresProfileCompletion !== undefined ? { isProfileComplete: !Boolean(user.requiresProfileCompletion) } : {}))
               },
               isAuthenticated: true,
               isLoading: false,

@@ -10,6 +10,16 @@ export interface User {
   role: UserRole
   schoolId?: string
   avatar?: string
+  phoneNumber?: string
+  gender?: string
+  // If the account was created from CBT migration this flag may be set by backend
+  isMigrated?: boolean
+  // Backend may return this when profile fields are incomplete
+  requiresProfileCompletion?: boolean
+  // Indicates whether the user finished required profile fields
+  isProfileComplete?: boolean
+  // List of profile fields that are missing and need to be filled
+  missingProfileFields?: string[]
   createdAt: string
   updatedAt: string
 }
