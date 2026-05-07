@@ -1,5 +1,5 @@
 // User roles and authentication types
-export type UserRole = "student" | "parent" | "staff" | "aspirant"
+export type UserRole = "student" | "parent" | "staff" | "aspirant" 
 
 export interface User {
   id: string
@@ -9,6 +9,8 @@ export interface User {
   name?: string
   role: UserRole
   schoolId?: string
+  schoolName?: string
+  schoolLogo?: string | null
   avatar?: string
   phoneNumber?: string
   gender?: string

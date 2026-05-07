@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { EmptyState } from "@/components/ui/empty-state"
 import { FileText, Printer, ChevronDown } from "lucide-react"
+import { resolveMediaUrl } from "@/lib/utils"
 import type {
   SingleTermReportCardDto,
   CumulativeReportCardDto,
@@ -259,7 +260,7 @@ function SingleTermReportCardView({
         <div className="bg-blue-900 text-white py-6 px-6 text-center">
           {data.schoolLogo && (
             <img
-              src={data.schoolLogo}
+              src={resolveMediaUrl(data.schoolLogo)}
               alt="logo"
               className="h-16 w-16 mx-auto mb-2 rounded-full bg-white p-1 object-contain"
             />
@@ -514,7 +515,7 @@ function CumulativeReportCardView({
         <div className="bg-blue-900 text-white py-6 px-6 text-center">
           {data.schoolLogo && (
             <img
-              src={data.schoolLogo}
+              src={resolveMediaUrl(data.schoolLogo)}
               alt="logo"
               className="h-16 w-16 mx-auto mb-2 rounded-full bg-white p-1 object-contain"
             />

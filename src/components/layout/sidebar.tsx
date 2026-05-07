@@ -1,7 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store"
 import {
-  GraduationCap,
   LayoutDashboard,
   FileText,
   CreditCard,
@@ -13,6 +12,7 @@ import {
   ClipboardList,
   ClipboardCheck,
 } from "lucide-react"
+import { getBrandingSubtitle, resolveSchoolBranding, SchoolBrandHeader } from "./school-branding"
 
 const navigationItems = {
   student: [
@@ -65,6 +65,7 @@ export function Sidebar() {
     }
   }
   const currentPath = location.pathname
+  const branding = resolveSchoolBranding(user)
 
   const handleLogout = () => {
     logout()
@@ -72,32 +73,26 @@ export function Sidebar() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background-primary">
-      {/* Header */}
-      <div className="flex items-center justify-center p-6 border-b border-neutral-200 flex-shrink-0">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
-            <GraduationCap className="h-6 w-6 text-primary-500" />
-          </div>
-          <div className="text-center">
-            <h1 className="text-lg font-bold text-text-primary">iDEAL Portal</h1>
-            <p className="text-xs text-text-tertiary capitalize">{user.role} Portal</p>
-          </div>
-        </div>
+    <div className="flex h-full min-h-0 flex-col bg-background-primary">
+      <div className="flex-shrink-0 border-b border-neutral-200 p-4">
+        <SchoolBrandHeader
+          schoolName={branding.schoolName}
+          schoolLogoUrl={branding.schoolLogoUrl}
+          subtitle={getBrandingSubtitle(user.role)}
+        />
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-5">
         {navigation.map((item) => {
           const isActive = currentPath === item.href
           return (
             <button
               key={item.id}
               onClick={() => navigate(item.href)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+              className={`w-full flex items-center space-x-3 rounded-xl border px-4 py-3 text-left transition-colors ${
                 isActive
-                  ? 'bg-primary-50 text-primary-700 border border-primary-200 shadow-soft'
-                  : 'text-text-secondary hover:bg-neutral-50'
+                  ? 'border-primary-200 bg-primary-50 text-primary-700 shadow-soft'
+                  : 'border-transparent text-text-secondary hover:border-neutral-200 hover:bg-neutral-50'
               }`}
             >
               <div className={`flex-shrink-0 ${
@@ -118,8 +113,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-neutral-200 flex-shrink-0">
+      <div className="flex-shrink-0 border-t border-neutral-200 p-4">
         <div className="text-center mb-4">
           <p className="text-xs text-text-tertiary">
             Powered by iDEAL Smart Solution Limited

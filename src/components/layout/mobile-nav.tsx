@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
 import {
-  GraduationCap,
   LayoutDashboard,
   FileText,
   CreditCard,
@@ -18,7 +18,7 @@ import {
   ClipboardList,
   ClipboardCheck,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { getBrandingSubtitle, resolveSchoolBranding, SchoolBrandHeader } from "./school-branding"
 
 const navigationItems = {
   student: [
@@ -68,6 +68,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   if (!user) return null
 
   const navigation = navigationItems[user.role as keyof typeof navigationItems] || []
+  const branding = resolveSchoolBranding(user)
 
   const handleLogout = () => {
     logout()
@@ -83,18 +84,18 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="left" className="w-72 p-0 bg-background-primary">
-          <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-background-primary px-6 pb-4 h-full">
-            {/* Logo */}
-            <div className="flex h-16 shrink-0 items-center justify-center border-b border-neutral-200">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="h-8 w-8 text-primary-500" />
-                <span className="text-xl font-bold text-primary-600">iDEAL</span>
-              </div>
+        <SheetContent side="left" className="w-[min(22rem,calc(100vw-1rem))] p-0 bg-background-primary sm:max-w-sm">
+          <div className="flex h-full min-h-0 grow flex-col overflow-y-auto bg-background-primary px-4 pb-4 pt-4">
+            <div className="pb-4">
+              <SchoolBrandHeader
+                schoolName={branding.schoolName}
+                schoolLogoUrl={branding.schoolLogoUrl}
+                subtitle={getBrandingSubtitle(user.role)}
+                compact
+              />
             </div>
 
-            {/* User Profile */}
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-primary-50 border border-primary-100">
+            <div className="flex items-center gap-3 rounded-xl border border-primary-100 bg-primary-50 p-3">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={user.avatar || "/placeholder.svg"} alt={`${user.firstName} ${user.lastName}`} />
                 <AvatarFallback className="bg-primary-500 text-white">
@@ -102,21 +103,20 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
                   {user.lastName[0]}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary truncate">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-text-primary">
                   {user.firstName} {user.lastName}
                 </p>
-                <p className="text-xs text-text-tertiary capitalize">{user.role.replace("_", " ")}</p>
+                <p className="truncate text-xs text-text-tertiary capitalize">{user.role.replace("_", " ")} Portal</p>
               </div>
             </div>
 
-            <Separator className="bg-neutral-200" />
+            <Separator className="my-4 bg-neutral-200" />
 
-            {/* Navigation */}
-            <nav className="flex flex-1 flex-col">
+            <nav className="flex min-h-0 flex-1 flex-col">
               <ul role="list" className="flex flex-1 flex-col gap-y-7">
                 <li>
-                  <ul role="list" className="-mx-2 space-y-1">
+                  <ul role="list" className="space-y-1">
                     {navigation.map((item) => {
                       const isActive = location.pathname === item.href
                       return (
@@ -139,9 +139,8 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
                   </ul>
                 </li>
 
-                {/* Settings and Logout */}
                 <li className="mt-auto">
-                  <ul role="list" className="-mx-2 space-y-1">
+                  <ul role="list" className="space-y-1">
                     <li>
                       <Button
                         variant="ghost"
