@@ -95,6 +95,33 @@ const pageInfo: Record<string, { title: string; desc: string; icon: ReactElement
   },
 }
 
+const roleAwarePageInfo: Record<string, Record<string, { title: string; desc: string; icon: ReactElement }>> = {
+  student: {
+    results: pageInfo.results,
+  },
+  parent: {
+    results: {
+      title: "Results",
+      desc: "View academic results",
+      icon: <FileText className="h-6 w-6 text-primary-500" />,
+    },
+  },
+  staff: {
+    results: {
+      title: "Upload Results",
+      desc: "Upload and manage student results",
+      icon: <FileText className="h-6 w-6 text-primary-500" />,
+    },
+  },
+  teacher: {
+    results: {
+      title: "Upload Results",
+      desc: "Upload and manage student results",
+      icon: <FileText className="h-6 w-6 text-primary-500" />,
+    },
+  },
+}
+
 function DesktopProfile() {
   const { user, logout } = useAuthStore()
   const { dashboard } = useStudentDashboardStore()
@@ -149,7 +176,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   // Extract page key from pathname
   const pathSegments = location.pathname.split('/').filter(Boolean)
   const pageKey = pathSegments[pathSegments.length - 1] || user.role
-  const active = pageInfo[pageKey] || pageInfo[user.role]
+  const active = roleAwarePageInfo[user.role]?.[pageKey] || pageInfo[pageKey] || pageInfo[user.role]
 
   return (
     <div className="flex h-screen bg-background-secondary overflow-hidden">

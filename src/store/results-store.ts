@@ -202,6 +202,8 @@ interface ResultsStore extends ResultsState {
   createResult: (data: CreateResultDto) => Promise<void>
   updateResult: (data: UpdateResultDto) => Promise<void>
   deleteResult: (id: string) => Promise<void>
+  uploadResultsExcel: (formData: FormData) => Promise<any>
+  downloadResultsExcelTemplate: () => Promise<Blob>
   
   // Report Card
   fetchSingleTermReportCard: (studentId: string, term: number, session: string) => Promise<void>
@@ -417,6 +419,40 @@ export const useResultsStore = create<ResultsStore>((set, get) => ({
     } catch (error: any) {
       console.error('Create result error:', error)
       const errorMessage = error.response?.data?.message || "Failed to create result"
+      set({ error: errorMessage, isLoading: false })
+      throw new Error(errorMessage)
+    }
+  },
+
+  // Upload Excel with results
+  uploadResultsExcel: async (formData: FormData) => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await axiosInstance.post('/Results/import-excel', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      set({ isLoading: false })
+      return response.data
+    } catch (error: any) {
+      console.error('Upload results excel error:', error)
+      const errorMessage = error.response?.data?.message || "Failed to upload excel"
+      set({ error: errorMessage, isLoading: false })
+      throw new Error(errorMessage)
+    }
+  },
+
+  // Download Excel template
+  downloadResultsExcelTemplate: async () => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await axiosInstance.get('/Results/excel-template', {
+        responseType: 'blob',
+      })
+      set({ isLoading: false })
+      return response.data
+    } catch (error: any) {
+      console.error('Download template error:', error)
+      const errorMessage = error.response?.data?.message || 'Failed to download template'
       set({ error: errorMessage, isLoading: false })
       throw new Error(errorMessage)
     }

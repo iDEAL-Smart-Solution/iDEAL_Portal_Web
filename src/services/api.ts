@@ -1,8 +1,8 @@
 import axios from "axios";
 import { getErrorMessage, showError, showSuccess } from "@/lib/notifications";
 
-// export const BASE_URL = "http://localhost:5093/api";
-export const BASE_URL = "https://portal-api.idealsmartsolutions.com/api";
+export const BASE_URL = "http://localhost:5093/api";
+// export const BASE_URL = "https://portal-api.idealsmartsolutions.com/api";
 
 const PORTAL_ALLOWED_ROLES = new Set(["student", "parent", "staff", "aspirant"]);
 

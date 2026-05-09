@@ -9,6 +9,7 @@ import {
   Calendar,
   Users,
   Upload,
+  BarChart,
   LogOut,
   ClipboardList,
   ClipboardCheck,
@@ -17,6 +18,7 @@ import {
 const navigationItems = {
   student: [
     { id: "dashboard", name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard, description: "View your dashboard overview" },
+    { id: "performance", name: "Performance", href: "/dashboard/student/performance", icon: BarChart, description: "View analytics and performance" },
     { id: "results", name: "My Results", href: "/dashboard/student/results", icon: FileText, description: "Check your academic results" },
     { id: "report-card", name: "Report Card", href: "/dashboard/student/report-card", icon: ClipboardCheck, description: "View & print your report card" },
     { id: "payments", name: "Payments", href: "/dashboard/student/payments", icon: CreditCard, description: "View payment history" },
@@ -26,12 +28,14 @@ const navigationItems = {
   ],
   parent: [
     { id: "dashboard", name: "Dashboard", href: "/dashboard/parent", icon: LayoutDashboard, description: "View dashboard overview" },
+    { id: "performance", name: "Performance", href: "/dashboard/parent/performance", icon: BarChart, description: "View analytics and performance" },
     { id: "wards", name: "My Wards", href: "/dashboard/parent/wards", icon: Users, description: "View your children's information" },
     { id: "results", name: "Results", href: "/dashboard/parent/results", icon: FileText, description: "View academic results" },
     { id: "payments", name: "Payments", href: "/dashboard/parent/payments", icon: CreditCard, description: "Manage payments" },
   ],
   staff: [
     { id: "dashboard", name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard, description: "View dashboard overview" },
+    { id: "performance", name: "Performance", href: "/dashboard/teacher/performance", icon: BarChart, description: "View analytics and performance" },
     { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
     { id: "results", name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList, description: "Upload student results" },
@@ -39,6 +43,7 @@ const navigationItems = {
   ],
   teacher: [
     { id: "dashboard", name: "Dashboard", href: "/dashboard/teacher", icon: LayoutDashboard, description: "View dashboard overview" },
+    { id: "performance", name: "Performance", href: "/dashboard/teacher/performance", icon: BarChart, description: "View analytics and performance" },
     { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
     { id: "results", name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList, description: "Upload student results" },

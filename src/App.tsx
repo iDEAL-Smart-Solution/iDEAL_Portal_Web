@@ -34,6 +34,11 @@ import TeacherResults from '@/pages/dashboard/teacher/TeacherResults'
 
 import AspirantDashboard from '@/pages/dashboard/aspirant/AspirantDashboard'
 import CompleteProfile from '@/pages/profile/CompleteProfile'
+// Performance / Analytics pages
+import { StudentPerformancePage } from '@/pages/dashboard/student/Performance'
+import { TeacherPerformancePage } from '@/pages/dashboard/teacher/Performance'
+import { AdminPerformancePage } from '@/pages/dashboard/admin/Performance'
+import { ParentPerformancePage } from '@/pages/dashboard/parent/Performance'
 
 const PORTAL_ALLOWED_ROLES = new Set(['student', 'parent', 'staff', 'aspirant'])
 
@@ -123,6 +128,11 @@ function App() {
               <StudentTimetable />
             </ProtectedRoute>
           } />
+          <Route path="/dashboard/student/performance" element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentPerformancePage />
+            </ProtectedRoute>
+          } />
           {/* admission route */}
           <Route path="/admission/apply" element={<AdmissionForm />} />
           <Route path="/admission/status" element={<ApplicationStatus />} />
@@ -156,6 +166,11 @@ function App() {
               <ParentWards />
             </ProtectedRoute>
           } />
+          <Route path="/dashboard/parent/performance" element={
+            <ProtectedRoute allowedRoles={['parent']}>
+              <ParentPerformancePage />
+            </ProtectedRoute>
+          } />
 
           {/* Teacher routes */}
           <Route path="/dashboard/teacher" element={
@@ -186,6 +201,17 @@ function App() {
           <Route path="/dashboard/teacher/results" element={
             <ProtectedRoute allowedRoles={['staff']}>
               <TeacherResults />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/teacher/performance" element={
+            <ProtectedRoute allowedRoles={['staff']}>
+              <TeacherPerformancePage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/dashboard/admin/performance" element={
+            <ProtectedRoute allowedRoles={['staff']}>
+              <AdminPerformancePage />
             </ProtectedRoute>
           } />
 

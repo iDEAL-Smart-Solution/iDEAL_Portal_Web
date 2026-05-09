@@ -154,7 +154,7 @@ export default function LoginPage() {
               {isLoadingBrand ? 'Loading school branding' : currentDomain}
             </div>
             <div className="space-y-3">
-              <p className="text-4xl font-semibold tracking-tight text-slate-900 xl:text-5xl">
+              <p className="rounded-lg bg-black/40 px-4 py-3 text-4xl font-semibold tracking-tight text-white xl:text-5xl shadow-lg" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}>
                 {schoolBrand?.schoolName || 'The easiest way to oversee your school network'}
               </p>
               <p className="max-w-lg text-base leading-7 text-slate-700">
