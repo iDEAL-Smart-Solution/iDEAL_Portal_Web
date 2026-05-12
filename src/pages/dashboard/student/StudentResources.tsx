@@ -164,17 +164,6 @@ export default function StudentResources() {
                         </Button>
                       )}
 
-                      {resource.link && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-2"
-                          onClick={() => window.open(resource.link, "_blank")}
-                        >
-                          <Link2 className="h-4 w-4" />
-                          Open Link
-                        </Button>
-                      )}
                     </div>
                   </CardContent>
                 </Card>

@@ -108,7 +108,6 @@ export default function StudentReportCard() {
     pw.document.write(html)
     pw.document.close()
     pw.focus()
-    setTimeout(() => pw.print(), 350)
   }
 
   if (!user) {
@@ -220,11 +219,16 @@ export default function StudentReportCard() {
         )}
 
         {!isLoading && !error && viewMode === "single" && reportCard && (
-          <SingleTermReportCardView data={reportCard} termNum={selectedTerm} />
+          <SingleTermReportCardView
+            data={reportCard}
+            termNum={selectedTerm}
+          />
         )}
 
         {!isLoading && !error && viewMode === "cumulative" && cumulativeReportCard && (
-          <CumulativeReportCardView data={cumulativeReportCard} />
+          <CumulativeReportCardView
+            data={cumulativeReportCard}
+          />
         )}
 
         {!isLoading && !error && !activeCard && (
@@ -256,21 +260,41 @@ function SingleTermReportCardView({
   return (
     <Card className="overflow-hidden border-0 shadow-lg">
       <CardContent className="p-0">
-        {/* ── School Header ── */}
-        <div className="bg-blue-900 text-white py-6 px-6 text-center">
-          {data.schoolLogo && (
-            <img
-              src={resolveMediaUrl(data.schoolLogo)}
-              alt="logo"
-              className="h-16 w-16 mx-auto mb-2 rounded-full bg-white p-1 object-contain"
-            />
-          )}
-          <h1 className="text-2xl font-extrabold uppercase tracking-wide">
-            {data.schoolName}
-          </h1>
-          <p className="text-blue-200 text-xs mt-1 uppercase tracking-[0.2em]">
-            Report Sheet
-          </p>
+        {/* ── School Header (Flex Layout) ── */}
+        <div className="bg-blue-900 text-white flex items-center justify-between gap-4 px-6 py-4">
+          {/* Left: School Logo */}
+          <div className="w-14 h-14 rounded-full bg-white p-1 flex-shrink-0 overflow-hidden flex items-center justify-center">
+            {data.schoolLogo && (
+              <img
+                src={resolveMediaUrl(data.schoolLogo)}
+                alt="logo"
+                className="w-full h-full object-contain"
+              />
+            )}
+          </div>
+
+          {/* Center: School Name & Subtitle */}
+          <div className="flex-1 text-center">
+            <h1 className="text-2xl font-extrabold uppercase tracking-wide leading-tight">
+              {data.schoolName}
+            </h1>
+            <p className="text-blue-100 text-xs mt-1 uppercase tracking-wider">
+              Report Sheet
+            </p>
+          </div>
+
+          {/* Right: Student Photo */}
+          <div className="w-14 h-14 rounded-full bg-white p-1 flex-shrink-0 overflow-hidden flex items-center justify-center">
+            {data.studentPhotoUrl ? (
+              <img
+                src={resolveMediaUrl(data.studentPhotoUrl)}
+                alt={`${data.studentName} profile`}
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <div className="text-[8px] text-gray-400 text-center">No photo</div>
+            )}
+          </div>
         </div>
 
         {/* ── Student Info Row 1 ── */}
@@ -486,12 +510,36 @@ function SingleTermReportCardView({
           <div className="border-b border-gray-400 mt-2" />
         </div>
 
-        {/* ── Principal Sign-off ── */}
-        <div className="border-x border-b border-gray-300 px-4 py-4 text-xs text-right">
-          <div className="inline-block text-center">
-            <div className="w-40 border-b border-gray-400 mb-1" />
-            <p className="font-bold italic">Principal</p>
-            <p className="font-bold uppercase text-[10px]">{data.schoolName}</p>
+        {/* ── Signatures (Side-by-Side) ── */}
+        <div className="flex justify-between gap-6 border border-gray-300 border-t-0 px-4 py-3 text-[10px]">
+          {/* Principal Signature */}
+          <div className="flex-1">
+            <div className="h-12 border-b-2 border-gray-400 flex items-end justify-start pb-1 mb-1">
+              {data.principalSignatureUrl ? (
+                <img
+                  src={resolveMediaUrl(data.principalSignatureUrl)}
+                  alt="Principal signature"
+                  className="max-h-10 max-w-full object-contain"
+                />
+              ) : null}
+            </div>
+            <p className="font-bold italic text-xs">Principal</p>
+            <p className="font-bold uppercase text-[9px]">{data.schoolName}</p>
+          </div>
+
+          {/* Student Signature */}
+          <div className="flex-1 text-right">
+            <div className="h-12 border-b-2 border-gray-400 flex items-end justify-end pb-1 mb-1">
+              {data.studentSignatureUrl ? (
+                <img
+                  src={resolveMediaUrl(data.studentSignatureUrl)}
+                  alt="Student signature"
+                  className="max-h-10 max-w-full object-contain"
+                />
+              ) : null}
+            </div>
+            <p className="font-bold italic text-xs">Student</p>
+            <p className="font-bold uppercase text-[9px]">{data.studentName}</p>
           </div>
         </div>
       </CardContent>
@@ -511,21 +559,41 @@ function CumulativeReportCardView({
   return (
     <Card className="overflow-hidden border-0 shadow-lg">
       <CardContent className="p-0">
-        {/* ── School Header ── */}
-        <div className="bg-blue-900 text-white py-6 px-6 text-center">
-          {data.schoolLogo && (
-            <img
-              src={resolveMediaUrl(data.schoolLogo)}
-              alt="logo"
-              className="h-16 w-16 mx-auto mb-2 rounded-full bg-white p-1 object-contain"
-            />
-          )}
-          <h1 className="text-2xl font-extrabold uppercase tracking-wide">
-            {data.schoolName}
-          </h1>
-          <p className="text-blue-200 text-xs mt-1 uppercase tracking-[0.2em]">
-            Cumulative Report Sheet — {data.session}
-          </p>
+        {/* ── School Header (Flex Layout) ── */}
+        <div className="bg-blue-900 text-white flex items-center justify-between gap-4 px-6 py-4">
+          {/* Left: School Logo */}
+          <div className="w-14 h-14 rounded-full bg-white p-1 flex-shrink-0 overflow-hidden flex items-center justify-center">
+            {data.schoolLogo && (
+              <img
+                src={resolveMediaUrl(data.schoolLogo)}
+                alt="logo"
+                className="w-full h-full object-contain"
+              />
+            )}
+          </div>
+
+          {/* Center: School Name & Subtitle */}
+          <div className="flex-1 text-center">
+            <h1 className="text-2xl font-extrabold uppercase tracking-wide leading-tight">
+              {data.schoolName}
+            </h1>
+            <p className="text-blue-100 text-xs mt-1 uppercase tracking-wider">
+              Cumulative Report Sheet — {data.session}
+            </p>
+          </div>
+
+          {/* Right: Student Photo */}
+          <div className="w-14 h-14 rounded-full bg-white p-1 flex-shrink-0 overflow-hidden flex items-center justify-center">
+            {data.studentPhotoUrl ? (
+              <img
+                src={resolveMediaUrl(data.studentPhotoUrl)}
+                alt={`${data.studentName} profile`}
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <div className="text-[8px] text-gray-400 text-center">No photo</div>
+            )}
+          </div>
         </div>
 
         {/* ── Student Info ── */}
@@ -704,11 +772,37 @@ function CumulativeReportCardView({
           </div>
           <div className="border-b border-gray-400 mt-2" />
         </div>
-        <div className="border-x border-b border-gray-300 px-4 py-4 text-xs text-right">
-          <div className="inline-block text-center">
-            <div className="w-40 border-b border-gray-400 mb-1" />
-            <p className="font-bold italic">Principal</p>
-            <p className="font-bold uppercase text-[10px]">{data.schoolName}</p>
+
+        {/* ── Signatures (Side-by-Side) ── */}
+        <div className="flex justify-between gap-6 border border-gray-300 border-t-0 px-4 py-3 text-[10px]">
+          {/* Principal Signature */}
+          <div className="flex-1">
+            <div className="h-6 border-b-2 border-gray-400 flex items-end justify-start pb-0.5 mb-0.5">
+              {data.principalSignatureUrl ? (
+                <img
+                  src={resolveMediaUrl(data.principalSignatureUrl)}
+                  alt="Principal signature"
+                  className="max-h-5 max-w-full object-contain"
+                />
+              ) : null}
+            </div>
+            <p className="font-bold italic text-xs">Principal</p>
+            <p className="font-bold uppercase text-[9px]">{data.schoolName}</p>
+          </div>
+
+          {/* Student Signature */}
+          <div className="flex-1 text-right">
+            <div className="h-6 border-b-2 border-gray-400 flex items-end justify-end pb-0.5 mb-0.5">
+              {data.studentSignatureUrl ? (
+                <img
+                  src={resolveMediaUrl(data.studentSignatureUrl)}
+                  alt="Student signature"
+                  className="max-h-5 max-w-full object-contain"
+                />
+              ) : null}
+            </div>
+            <p className="font-bold italic text-xs">Student</p>
+            <p className="font-bold uppercase text-[9px]">{data.studentName}</p>
           </div>
         </div>
       </CardContent>
@@ -760,10 +854,16 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 const PRINT_STYLES = `
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',Arial,sans-serif;padding:12px;color:#333;font-size:11px}
-.header{text-align:center;background:#1e3a5f;color:#fff;padding:18px 12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{width:100%}
+body{font-family:'Segoe UI',Arial,sans-serif;padding:6px;color:#333;font-size:10px;line-height:1.15}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;background:__PRIMARY__;color:#fff;padding:12px 14px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.header .logo{width:54px;height:54px;flex:0 0 54px;border-radius:50%;background:#fff;padding:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.header .logo img{width:100%;height:100%;object-fit:contain}
+.header .meta{flex:1;text-align:center}
+.header .student-photo{width:84px;height:102px;flex:0 0 84px;border-radius:8px;background:#fff;padding:3px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.header .student-photo img{width:100%;height:100%;object-fit:cover;border-radius:6px}
 .header h1{font-size:22px;text-transform:uppercase;letter-spacing:1.5px;font-weight:800}
-.header .sub{font-size:10px;color:#a3c4e0;margin-top:4px;text-transform:uppercase;letter-spacing:3px}
+.header .sub{font-size:10px;color:#d9e8f4;margin-top:3px;text-transform:uppercase;letter-spacing:2px}
 table{width:100%;border-collapse:collapse}
 td,th{border:1px solid #bbb;padding:4px 6px}
 .c{text-align:center}
@@ -771,22 +871,34 @@ td,th{border:1px solid #bbb;padding:4px 6px}
 .subj{font-weight:500;text-transform:uppercase}
 .info td{font-size:11px;padding:3px 6px}
 .lbl{font-weight:700}
-.sh{background:#1e3a5f;color:#fff;font-weight:700;font-size:10px;text-transform:uppercase;padding:4px 6px;letter-spacing:0.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.at th{background:#1e3a5f;color:#fff;font-size:10px;padding:5px 4px;font-weight:600;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sh{background:__PRIMARY__;color:#fff;font-weight:700;font-size:10px;text-transform:uppercase;padding:4px 6px;letter-spacing:0.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.at th{background:__PRIMARY__;color:#fff;font-size:10px;padding:5px 4px;font-weight:600;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .at td{font-size:11px}
 .at tr:nth-child(even){background:#f0f5fa;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .bg{display:grid;grid-template-columns:1fr 1fr;border:1px solid #bbb;border-top:0}
-.bg>div{padding:8px}
+.bg>div{padding:6px}
 .bg>div:first-child{border-right:1px solid #bbb}
-.bg h4{font-size:10px;text-transform:uppercase;font-weight:700;margin-bottom:5px;color:#1e3a5f}
+.bg h4{font-size:10px;text-transform:uppercase;font-weight:700;margin-bottom:4px;color:__PRIMARY__}
 .bg table{border:none}
 .bg td,.bg th{border:none;border-bottom:1px solid #eee;padding:2px 4px;font-size:10px}
 .bx{width:12px;height:12px;border:1px solid #999;display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.cm{border:1px solid #bbb;border-top:0;padding:8px;font-size:11px}
-.so{border:1px solid #bbb;border-top:0;padding:12px 8px;text-align:right;font-size:11px}
+.cm{border:1px solid #bbb;border-top:0;padding:5px 8px;font-size:10px}
+.so{border:1px solid #bbb;border-top:0;padding:8px 8px;text-align:right;font-size:10px}
 .so .in{display:inline-block;text-align:center}
 .so .ln{width:150px;border-bottom:1px solid #666;margin-bottom:2px}
-@media print{body{padding:0}@page{margin:10mm}}
+/* Signature grid: place two signature blocks side-by-side, left and right */
+.siggrid{display:flex;justify-content:space-between;gap:22px;border:1px solid #bbb;border-top:0;padding:8px 10px;font-size:10px}
+.siggrid .in{flex:1}
+.siggrid .in:first-child{text-align:left !important}
+.siggrid .in:last-child{text-align:right !important}
+            .sigbox{height:23px;border-bottom:2px solid #666;display:flex;align-items:flex-end;justify-content:flex-start !important;padding-bottom:2px}
+.siggrid .in:last-child .sigbox{justify-content:flex-end !important}
+            .sigbox img{max-height:21px;max-width:100%;object-fit:contain}
+@media print{
+  @page{margin:6mm}
+  body{padding:0}
+  .page{page-break-inside:avoid;break-inside:avoid}
+}
 `
 
 /* ════════════════════════════════════════
@@ -834,13 +946,21 @@ function buildSingleTermPrintHtml(
       })
     : ""
 
+  const primary = (typeof window !== 'undefined') ? getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#1e3a5f' : '#1e3a5f'
+  const styles = PRINT_STYLES.replace(/__PRIMARY__/g, primary.trim())
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>Report Card — ${data.studentName}</title>
-<style>${PRINT_STYLES}</style></head><body>
+<style>${styles}</style></head><body>
 
+<div class="page">
 <div class="header">
-  <h1>${data.schoolName}</h1>
-  <div class="sub">Report Sheet</div>
+  <div class="logo">${data.schoolLogo ? `<img src="${resolveMediaUrl(data.schoolLogo)}" alt="${data.schoolName} logo" />` : ``}</div>
+  <div class="meta">
+    <h1>${data.schoolName}</h1>
+    <div class="sub">Report Sheet</div>
+  </div>
+  <div class="student-photo">${data.studentPhotoUrl ? `<img src="${resolveMediaUrl(data.studentPhotoUrl)}" alt="${data.studentName} profile" />` : `<span style="font-size:9px;color:#666;text-align:center;line-height:1.2;padding:4px">No photo uploaded</span>`}</div>
 </div>
 
 <table class="info">
@@ -921,12 +1041,26 @@ function buildSingleTermPrintHtml(
   <span class="lbl">Principal's Comment:</span> <em>${data.principalRemark}</em>
 </div>
 <div class="cm" style="border-bottom:1px solid #bbb"></div>
-<div class="so">
+
+<div class="siggrid">
   <div class="in">
-    <div class="ln"></div>
+    <div class="sigbox">${data.principalSignatureUrl ? `<img src="${resolveMediaUrl(data.principalSignatureUrl)}" alt="Principal signature" />` : ``}</div>
     <div><strong><em>Principal</em></strong></div>
     <div><strong>${data.schoolName.toUpperCase()}</strong></div>
   </div>
+  <div class="in">
+    <div class="sigbox">${data.studentSignatureUrl ? `<img src="${resolveMediaUrl(data.studentSignatureUrl)}" alt="Student signature" />` : ``}</div>
+    <div><strong><em>Student</em></strong></div>
+    <div><strong>${data.studentName}</strong></div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', function () {
+    setTimeout(function () { window.print(); }, 300);
+  });
+</script>
+
 </div>
 
 </body></html>`
@@ -936,7 +1070,9 @@ function buildSingleTermPrintHtml(
    PRINT HTML — CUMULATIVE
    ════════════════════════════════════════ */
 
-function buildCumulativePrintHtml(data: CumulativeReportCardDto): string {
+function buildCumulativePrintHtml(
+  data: CumulativeReportCardDto,
+): string {
   const subjectRows = data.subjects
     .map(
       (s) => `<tr>
@@ -969,13 +1105,21 @@ function buildCumulativePrintHtml(data: CumulativeReportCardDto): string {
       })
     : ""
 
+  const primary = (typeof window !== 'undefined') ? getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#1e3a5f' : '#1e3a5f'
+  const styles = PRINT_STYLES.replace(/__PRIMARY__/g, primary.trim())
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>Cumulative Report — ${data.studentName}</title>
-<style>${PRINT_STYLES}</style></head><body>
+<style>${styles}</style></head><body>
 
+<div class="page">
 <div class="header">
-  <h1>${data.schoolName}</h1>
-  <div class="sub">Cumulative Report Sheet — ${data.session}</div>
+  <div class="logo">${data.schoolLogo ? `<img src="${resolveMediaUrl(data.schoolLogo)}" alt="${data.schoolName} logo" />` : ``}</div>
+  <div class="meta">
+    <h1>${data.schoolName}</h1>
+    <div class="sub">Cumulative Report Sheet — ${data.session}</div>
+  </div>
+  <div class="student-photo">${data.studentPhotoUrl ? `<img src="${resolveMediaUrl(data.studentPhotoUrl)}" alt="${data.studentName} profile" />` : `<span style="font-size:9px;color:#666;text-align:center;line-height:1.2;padding:4px">No photo uploaded</span>`}</div>
 </div>
 
 <table class="info">
@@ -1043,8 +1187,6 @@ function buildCumulativePrintHtml(data: CumulativeReportCardDto): string {
       ${effectivenessRows}
     </table>
   </div>
-</div>
-
 <div class="cm">
   <span class="lbl">Class Teacher's Comment:</span> ______________________________________________ &nbsp;&nbsp;
   <span class="lbl">Signature:</span> ___________
@@ -1053,12 +1195,26 @@ function buildCumulativePrintHtml(data: CumulativeReportCardDto): string {
   <span class="lbl">Principal's Comment:</span> <em>${data.principalRemark}</em>
 </div>
 <div class="cm" style="border-bottom:1px solid #bbb"></div>
-<div class="so">
+
+<div class="siggrid">
   <div class="in">
-    <div class="ln"></div>
+    <div class="sigbox">${data.principalSignatureUrl ? `<img src="${resolveMediaUrl(data.principalSignatureUrl)}" alt="Principal signature" />` : ``}</div>
     <div><strong><em>Principal</em></strong></div>
     <div><strong>${data.schoolName.toUpperCase()}</strong></div>
   </div>
+  <div class="in">
+    <div class="sigbox">${data.studentSignatureUrl ? `<img src="${resolveMediaUrl(data.studentSignatureUrl)}" alt="Student signature" />` : ``}</div>
+    <div><strong><em>Student</em></strong></div>
+    <div><strong>${data.studentName}</strong></div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', function () {
+    setTimeout(function () { window.print(); }, 300);
+  });
+</script>
+
 </div>
 
 </body></html>`

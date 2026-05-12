@@ -42,6 +42,9 @@ export interface SingleTermReportCardDto {
   schoolName: string
   schoolLogo: string | null
   nextTermBeginsOn: string | null
+  studentPhotoUrl: string | null
+  principalSignatureUrl: string | null
+  studentSignatureUrl: string | null
 }
 
 export interface CumulativeSubjectResultDto {
@@ -70,6 +73,9 @@ export interface CumulativeReportCardDto {
   schoolName: string
   schoolLogo: string | null
   nextTermBeginsOn: string | null
+  studentPhotoUrl: string | null
+  principalSignatureUrl: string | null
+  studentSignatureUrl: string | null
 }
 
 // Create Result DTO matching backend
