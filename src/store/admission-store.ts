@@ -24,7 +24,7 @@ interface AdmissionState {
   getFilteredAspirants: (filter: AspirantFilter) => Promise<void>;
   updateAdmissionStatus: (request: UpdateAdmissionStatusRequest) => Promise<{ success: boolean; message: string }>;
   migrateApprovedAspirants: () => Promise<{ success: boolean; message: string }>;
-  getAvailableClasses: () => Promise<void>;
+  getAvailableClasses: (schoolName?: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -159,10 +159,13 @@ export const useAdmissionStore = create<AdmissionState>((set) => ({
     }
   },
 
-  getAvailableClasses: async () => {
+  getAvailableClasses: async (schoolName?: string) => {
     set({ classesLoading: true, error: null });
     try {
-      const response = await axiosInstance.get<{ data: ClassOption[] }>("/Class/get-classes-by-subdomain");
+      const url = schoolName
+        ? `/Class/get-classes-by-school-name?schoolName=${encodeURIComponent(schoolName)}`
+        : `/Class/get-classes-by-subdomain`;
+      const response = await axiosInstance.get<{ data: ClassOption[] }>(url);
       set({ availableClasses: response.data.data, classesLoading: false });
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Failed to fetch classes";

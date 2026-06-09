@@ -57,11 +57,14 @@ export default function AdmissionForm() {
   }, []);
 
   useEffect(() => {
-    getAvailableClasses().catch((error) => {
+    // Use schoolName from branding (already fetched — no extra DB hit) to get classes.
+    // Fall back to subdomain-based lookup only if branding hasn't loaded yet.
+    const schoolName = publicBranding?.schoolName
+    getAvailableClasses(schoolName ?? undefined).catch((error) => {
       console.error("Failed to load classes:", error);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [publicBranding?.schoolName]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
