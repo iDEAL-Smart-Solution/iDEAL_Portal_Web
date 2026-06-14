@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import axiosInstance from "@/services/api";
-import { 
-  CreateAspirantRequest, 
-  GetAspirantResponse, 
+import {
+  CreateAspirantRequest,
+  GetAspirantResponse,
   AspirantFilter,
   UpdateAdmissionStatusRequest,
   ClassOption
@@ -15,7 +15,7 @@ interface AdmissionState {
   selectedAspirant: GetAspirantResponse | null;
   availableClasses: ClassOption[];
   classesLoading: boolean;
-  
+
   // Actions
   createAspirant: (data: CreateAspirantRequest) => Promise<{ success: boolean; message: string }>;
   getAllAspirants: () => Promise<void>;
@@ -57,7 +57,7 @@ export const useAdmissionStore = create<AdmissionState>((set) => ({
       const response = await axiosInstance.post("/Aspirant/create-aspirant", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      
+
       set({ loading: false });
       return { success: response.data.success, message: response.data.message };
     } catch (error: any) {
@@ -136,7 +136,7 @@ export const useAdmissionStore = create<AdmissionState>((set) => ({
         aspirantId: request.aspirantId,
         newStatus: request.newStatus
       });
-      
+
       set({ loading: false });
       return { success: response.data.success, message: response.data.message };
     } catch (error: any) {
@@ -159,20 +159,43 @@ export const useAdmissionStore = create<AdmissionState>((set) => ({
     }
   },
 
+  // getAvailableClasses: async (schoolName?: string) => {
+  //   set({ classesLoading: true, error: null });
+  //   try {
+  //     const url = schoolName
+  //       ? `/Class/get-classes-by-school-name?schoolName=${encodeURIComponent(schoolName)}`
+  //       : `/Class/get-classes-by-subdomain`;
+  //     const response = await axiosInstance.get<{ data: ClassOption[] }>(url);
+  //     set({ availableClasses: response.data.data, classesLoading: false });
+  //   } catch (error: any) {
+  //     const errorMessage = error.response?.data?.message || "Failed to fetch classes";
+  //     set({ classesLoading: false, error: errorMessage });
+  //     throw new Error(errorMessage);
+  //   }
+  // },
+
   getAvailableClasses: async (schoolName?: string) => {
-    set({ classesLoading: true, error: null });
-    try {
-      const url = schoolName
-        ? `/Class/get-classes-by-school-name?schoolName=${encodeURIComponent(schoolName)}`
-        : `/Class/get-classes-by-subdomain`;
-      const response = await axiosInstance.get<{ data: ClassOption[] }>(url);
-      set({ availableClasses: response.data.data, classesLoading: false });
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Failed to fetch classes";
-      set({ classesLoading: false, error: errorMessage });
-      throw new Error(errorMessage);
-    }
-  },
+  set({ classesLoading: true, error: null });
+
+  if (!schoolName) {
+    set({ classesLoading: false });
+    return;
+  }
+
+  try {
+    const url = `/Class/get-classes-by-school-name?schoolName=${encodeURIComponent(schoolName)}`;
+
+    const response = await axiosInstance.get<{ data: ClassOption[] }>(url);
+
+    set({ availableClasses: response.data.data, classesLoading: false });
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message || "Failed to fetch classes";
+
+    set({ classesLoading: false, error: errorMessage });
+    throw new Error(errorMessage);
+  }
+},
 
   clearError: () => set({ error: null })
 }));

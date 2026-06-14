@@ -45,26 +45,21 @@ export default function AdmissionForm() {
     parentAspirantPhoneNumber: "",
   });
 
-  // Fetch branding if not already loaded
   useEffect(() => {
     if (!publicBranding && !isBrandingLoading) {
       fetchPublicBranding(currentDomain);
     } else if (isBrandingLoading) {
-      // Trigger fetch — it's a no-op if already in-flight since it sets isBrandingLoading
       fetchPublicBranding(currentDomain);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    // Use schoolName from branding (already fetched — no extra DB hit) to get classes.
-    // Fall back to subdomain-based lookup only if branding hasn't loaded yet.
-    const schoolName = publicBranding?.schoolName
-    getAvailableClasses(schoolName ?? undefined).catch((error) => {
-      console.error("Failed to load classes:", error);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publicBranding?.schoolName]);
+  if (!publicBranding?.schoolName) return;
+
+  getAvailableClasses(publicBranding.schoolName).catch((error) => {
+    console.error("Failed to load classes:", error);
+  });
+}, [publicBranding?.schoolName]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
