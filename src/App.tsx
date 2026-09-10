@@ -31,6 +31,8 @@ import TeacherClasses from '@/pages/dashboard/teacher/TeacherClasses'
 import TeacherResources from '@/pages/dashboard/teacher/TeacherResources'
 import TeacherSubjects from './pages/dashboard/teacher/TeacherSubjects'
 import TeacherResults from '@/pages/dashboard/teacher/TeacherResults'
+import ResultApprovals from '@/pages/dashboard/teacher/ResultApprovals'
+import ResultApprovalDetail from '@/pages/dashboard/teacher/ResultApprovalDetail'
 
 import AspirantDashboard from '@/pages/dashboard/aspirant/AspirantDashboard'
 import CompleteProfile from '@/pages/profile/CompleteProfile'
@@ -201,6 +203,16 @@ function App() {
           <Route path="/dashboard/teacher/results" element={
             <ProtectedRoute allowedRoles={['staff']}>
               <TeacherResults />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/teacher/results/approvals" element={
+            <ProtectedRoute allowedRoles={['staff']}>
+              <ResultApprovals />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/teacher/results/approvals/:subjectId/:term" element={
+            <ProtectedRoute allowedRoles={['staff']}>
+              <ResultApprovalDetail />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/teacher/performance" element={

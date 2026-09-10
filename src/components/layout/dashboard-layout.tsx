@@ -26,6 +26,7 @@ import {
   Calendar,
   Users,
   Upload,
+  ClipboardCheck,
 } from "lucide-react"
 
 interface DashboardLayoutProps {
@@ -87,6 +88,11 @@ const pageInfo: Record<string, { title: string; desc: string; icon: ReactElement
     title: "Subjects",
     desc: "Manage your teaching subjects",
     icon: <FileText className="h-6 w-6 text-primary-500" />,
+  },
+  approvals: {
+    title: "Result Approvals",
+    desc: "Review and approve class result submissions",
+    icon: <ClipboardCheck className="h-6 w-6 text-primary-500" />,
   },
   aspirant: {
     title: "Aspirant Dashboard",

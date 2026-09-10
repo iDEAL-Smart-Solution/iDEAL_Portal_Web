@@ -1,5 +1,6 @@
 import type React from "react"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useAuthStore, useStaffStore, useResultsStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
@@ -12,11 +13,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FileText, Upload, Users, BookOpen, Eye, Trash2, AlertCircle, CheckCircle, Edit } from "lucide-react"
+import { FileText, Upload, Users, BookOpen, Eye, Trash2, AlertCircle, CheckCircle, Edit, ClipboardCheck } from "lucide-react"
 import type { CreateResultDto, StudentForResult, DetailedResult } from "@/store/results-store"
 import { showError, showSuccess, showWarning } from "@/lib/notifications"
 
 export default function TeacherResults() {
+  const navigate = useNavigate()
   const { user } = useAuthStore()
   const { teacherSubjects, fetchTeacherSubjects } = useStaffStore()
   const {
@@ -399,7 +401,12 @@ export default function TeacherResults() {
             <Eye className="h-4 w-4 mr-2" />
             View Results
           </Button>
+          <Button variant="outline" onClick={() => navigate('/dashboard/teacher/results/approvals')}>
+            <ClipboardCheck className="h-4 w-4 mr-2 text-primary-600" />
+            Result Approvals
+          </Button>
         </div>
+
 
         <Card>
           <CardHeader>

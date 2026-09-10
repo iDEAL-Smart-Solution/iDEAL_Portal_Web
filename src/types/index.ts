@@ -14,6 +14,9 @@ export interface User {
   avatar?: string
   phoneNumber?: string
   gender?: string
+  classId?: string
+  classIds?: string[]
+  subjectIds?: string[]
   // If the account was created from CBT migration this flag may be set by backend
   isMigrated?: boolean
   // Backend may return this when profile fields are incomplete
@@ -328,5 +331,72 @@ export interface PendingPayment {
   dueDate: string
   paymentType: string
   isOverdue: boolean
+}
+
+// Result Approval Workflow Types
+export interface PendingSubmission {
+  subjectId: string
+  subjectName: string
+  subjectCode: string
+  classId: string
+  className: string
+  term: number
+  session: string
+  totalResults: number
+  pendingCount: number
+  approvedCount: number
+  rejectedCount: number
+  submittedByStaffId: string
+  submittedByTeacherName: string
+  lastSubmittedAt: string
+}
+
+export interface SubmissionResultItem {
+  id: string
+  studentId: string
+  studentUin: string
+  studentName?: string
+  subjectCode?: string
+  subjectName?: string
+  firstCAScore: number
+  secondCAScore: number
+  thirdCAScore: number
+  examScore: number
+  totalScore: number
+  grade: string
+  status: "pending" | "approved" | "rejected" | string
+  rejectionReason?: string | null
+  remarks?: string | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface SubmissionDetail {
+  subjectId: string
+  subjectName?: string
+  subjectCode?: string
+  classId?: string
+  className?: string
+  term: number
+  session: string
+  submittedByStaffId?: string
+  submittedByTeacherName?: string
+  lastSubmittedAt?: string
+  totalResults?: number
+  pendingCount?: number
+  approvedCount?: number
+  rejectedCount?: number
+  results: SubmissionResultItem[]
+}
+
+export interface ApproveSubmissionRequest {
+  subjectId: string
+  term: number
+  session: string
+  classId?: string
+}
+
+export interface RejectResultRequest {
+  reason: string
 }
 

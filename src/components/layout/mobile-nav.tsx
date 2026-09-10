@@ -41,6 +41,7 @@ const navigationItems = {
     { name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
     { name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList },
+    { name: "Result Approvals", href: "/dashboard/teacher/results/approvals", icon: ClipboardCheck },
     { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
   ],
   teacher: [
@@ -48,6 +49,7 @@ const navigationItems = {
     { name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
     { name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList },
+    { name: "Result Approvals", href: "/dashboard/teacher/results/approvals", icon: ClipboardCheck },
     { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
   ],
   aspirant: [

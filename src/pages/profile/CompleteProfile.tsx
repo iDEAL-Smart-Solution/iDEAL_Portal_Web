@@ -116,6 +116,16 @@ export default function CompleteProfile() {
     }))
   }, [user, navigate])
 
+  useEffect(() => {
+    return () => {
+      Object.values(imagePreviews).forEach((preview) => {
+        if (preview) {
+          URL.revokeObjectURL(preview)
+        }
+      })
+    }
+  }, [imagePreviews])
+
   const visibleFields = missingFields
 
   if (!user) return null
@@ -142,16 +152,6 @@ export default function CompleteProfile() {
 
     setFormData((prev) => ({ ...prev, [field]: file }))
   }
-
-  useEffect(() => {
-    return () => {
-      Object.values(imagePreviews).forEach((preview) => {
-        if (preview) {
-          URL.revokeObjectURL(preview)
-        }
-      })
-    }
-  }, [imagePreviews])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -39,6 +39,7 @@ const navigationItems = {
     { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
     { id: "results", name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList, description: "Upload student results" },
+    { id: "approvals", name: "Result Approvals", href: "/dashboard/teacher/results/approvals", icon: ClipboardCheck, description: "Review and approve class results" },
     { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
   ],
   teacher: [
@@ -47,6 +48,7 @@ const navigationItems = {
     { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
     { id: "results", name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList, description: "Upload student results" },
+    { id: "approvals", name: "Result Approvals", href: "/dashboard/teacher/results/approvals", icon: ClipboardCheck, description: "Review and approve class results" },
     { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
   ],
   aspirant: [
@@ -62,6 +64,7 @@ export function Sidebar() {
   if (!user) return null
 
   const navigation = navigationItems[user.role as keyof typeof navigationItems] || []
+
   // If backend flagged profile as incomplete or user is migrated, surface a completion link
   if ((user.requiresProfileCompletion || user.isMigrated) && user.isProfileComplete === false) {
     // Avoid duplicate entry
@@ -69,6 +72,8 @@ export function Sidebar() {
       navigation.unshift({ id: "complete-profile", name: "Complete Profile", href: "/profile/complete", icon: ClipboardCheck, description: "Finish required profile fields" })
     }
   }
+
+
   const currentPath = location.pathname
   const branding = resolveSchoolBranding(user)
 

@@ -121,13 +121,15 @@ export const useAuthStore = create<AuthStore>()(
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 ...(user.classId && { classId: user.classId }),
+                ...(user.classIds && { classIds: user.classIds }),
+                ...(user.subjectIds && { subjectIds: user.subjectIds }),
                 ...(user.isMigrated !== undefined && { isMigrated: Boolean(user.isMigrated) }),
                 ...(user.requiresProfileCompletion !== undefined && { requiresProfileCompletion: Boolean(user.requiresProfileCompletion) }),
                 ...(user.missingProfileFields && { missingProfileFields: user.missingProfileFields }),
                 ...(user.isProfileComplete !== undefined
                   ? { isProfileComplete: Boolean(user.isProfileComplete) }
                   : (user.requiresProfileCompletion !== undefined
-                    ? { isProfileComplete: !Boolean(user.requiresProfileCompletion) }
+                    ? { isProfileComplete: !user.requiresProfileCompletion }
                     : {}))
               },
               isAuthenticated: true,
