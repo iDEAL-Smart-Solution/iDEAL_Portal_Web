@@ -83,7 +83,7 @@ export default function TeacherResults() {
     if (pageMode === 'upload') {
       fetchStudentsBySubject(selectedSubject)
     } else {
-      fetchResultsBySubject(subject.code)
+      fetchResultsBySubject(selectedSubject)
     }
   }, [selectedSubject, pageMode, teacherSubjects, fetchStudentsBySubject, fetchResultsBySubject, clearStudentsForResult, clearSubjectResults])
 
@@ -180,11 +180,12 @@ export default function TeacherResults() {
         setUploadDialogOpen(false)
         setEditingResultId(null)
         setResultForm({ studentId: '', studentUin: '', firstCA: 0, secondCA: 0, thirdCA: 0, exam: 0 })
-        if (selectedSubjectCode) fetchResultsBySubject(selectedSubjectCode)
+        if (selectedSubject) fetchResultsBySubject(selectedSubject)
       } else {
         const data: CreateResultDto = {
           studentId: resultForm.studentId,
           studentUin: resultForm.studentUin,
+          subjectId: selectedSubject,
           subjectCode: selectedSubjectCode,
           first_CA_Score: resultForm.firstCA,
           second_CA_Score: resultForm.secondCA,
@@ -221,6 +222,7 @@ export default function TeacherResults() {
           const data: CreateResultDto = {
             studentId: student.id,
             studentUin: student.uin,
+            subjectId: selectedSubject,
             subjectCode: selectedSubjectCode,
             first_CA_Score: scores.firstCA,
             second_CA_Score: scores.secondCA,
@@ -263,7 +265,7 @@ export default function TeacherResults() {
       await deleteResult(id)
       showSuccess('Result deleted successfully!')
       setDeleteConfirmId(null)
-      if (selectedSubjectCode) fetchResultsBySubject(selectedSubjectCode)
+      if (selectedSubject) fetchResultsBySubject(selectedSubject)
     } catch (err: any) {
       showError(err.message || 'Failed to delete result')
     }

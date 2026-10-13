@@ -82,7 +82,8 @@ export interface CumulativeReportCardDto {
 export interface CreateResultDto {
   studentId: string
   studentUin: string
-  subjectCode: string
+  subjectId?: string
+  subjectCode?: string
   first_CA_Score: number
   second_CA_Score: number
   third_CA_Score: number
@@ -531,35 +532,46 @@ export const useResultsStore = create<ResultsStore>((set, get) => ({
     }
   },
 
-  // Fetch results by subject code (for staff to view uploaded results)
-  fetchResultsBySubject: async (subjectCode: string) => {
+  // Fetch results by subject id (includes pending and approved submissions for the subject)
+  fetchResultsBySubject: async (subjectId: string) => {
     set({ isLoading: true, error: null })
     try {
-      // Fetch all results and filter by subject code
-      const response = await axiosInstance.get('/Results')
+      if (!subjectId) {
+        set({ subjectResults: [], isLoading: false })
+        return
+      }
+
+      const response = await axiosInstance.get(`/Results/subject/${subjectId}`)
       const data = response.data.data || response.data || []
-      
-      const filteredResults: DetailedResult[] = (Array.isArray(data) ? data : [])
-        .filter((item: any) => item.subjectCode?.toLowerCase() === subjectCode.toLowerCase())
-        .map((item: any) => ({
+
+      const filteredResults: DetailedResult[] = (Array.isArray(data) ? data : []).map((item: any) => {
+        const firstCA = Number(item.first_CA_Score ?? item.First_CA_Score ?? item.firstCaScore ?? 0)
+        const secondCA = Number(item.second_CA_Score ?? item.Second_CA_Score ?? item.secondCaScore ?? 0)
+        const thirdCA = Number(item.third_CA_Score ?? item.Third_CA_Score ?? item.thirdCaScore ?? 0)
+        const exam = Number(item.exam_Score ?? item.Exam_Score ?? item.examScore ?? 0)
+        const total = Number(item.total_Score ?? item.Total_Score ?? item.totalScore ?? (firstCA + secondCA + thirdCA + exam))
+        const grade = item.grade ?? item.Grade ?? calculateGrade(total)
+
+        return {
           id: item.id,
           studentId: item.studentId,
           studentUin: item.studentUin,
-          subjectId: item.subjectCode,
-          subjectCode: item.subjectCode,
+          subjectId: item.subjectId ?? item.subjectCode,
+          subjectCode: item.subjectCode ?? item.subjectId,
           subjectName: item.subjectName || item.subjectCode,
           term: getTermName(item.term),
           academicYear: item.session,
-          firstCAScore: item.first_CA_Score,
-          secondCAScore: item.second_CA_Score,
-          thirdCAScore: item.third_CA_Score,
-          examScore: item.exam_Score,
-          totalScore: item.total_Score,
-          score: item.total_Score,
-          grade: calculateGrade(item.total_Score),
+          firstCAScore: firstCA,
+          secondCAScore: secondCA,
+          thirdCAScore: thirdCA,
+          examScore: exam,
+          totalScore: total,
+          score: total,
+          grade,
           createdAt: new Date().toISOString(),
-        }))
-      
+        }
+      })
+
       set({ subjectResults: filteredResults, isLoading: false })
     } catch (error: any) {
       console.error('Fetch results by subject error:', error)

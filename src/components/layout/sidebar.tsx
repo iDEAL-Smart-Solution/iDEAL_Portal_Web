@@ -39,6 +39,7 @@ const navigationItems = {
     { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
     { id: "results", name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList, description: "Upload student results" },
+    { id: "results-approval", name: "Approve Results", href: "/dashboard/teacher/results-approval", icon: ClipboardCheck, description: "Review pending submissions" },
     { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
   ],
   teacher: [
@@ -47,6 +48,7 @@ const navigationItems = {
     { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
     { id: "results", name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList, description: "Upload student results" },
+    { id: "results-approval", name: "Approve Results", href: "/dashboard/teacher/results-approval", icon: ClipboardCheck, description: "Review pending submissions" },
     { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
   ],
   aspirant: [
