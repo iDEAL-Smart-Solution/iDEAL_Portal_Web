@@ -353,7 +353,14 @@ export default function TeacherResults() {
     {
       key: 'totalScore' as keyof DetailedResult,
       label: 'Total',
-      render: (value: number) => <Badge variant={value >= 50 ? 'default' : 'destructive'}>{value}/100</Badge>,
+      render: (value: number) => (
+        <Badge
+          variant="outline"
+          className="border-slate-300 bg-white text-slate-900 shadow-none hover:bg-white"
+        >
+          {value}/100
+        </Badge>
+      ),
     },
     {
       key: 'grade' as keyof DetailedResult,
@@ -513,7 +520,12 @@ export default function TeacherResults() {
                           <td className="p-3 text-center">{result.thirdCAScore}/10</td>
                           <td className="p-3 text-center">{result.examScore}/70</td>
                           <td className="p-3 text-center">
-                            <Badge variant={result.totalScore >= 50 ? 'default' : 'destructive'}>{result.totalScore}/100</Badge>
+                            <Badge
+                              variant="outline"
+                              className="border-slate-300 bg-white text-slate-900 shadow-none hover:bg-white"
+                            >
+                              {result.totalScore}/100
+                            </Badge>
                           </td>
                           <td className="p-3 text-center">
                             <span className={`px-2 py-1 rounded text-xs font-medium ${getGradeBadgeColor(result.grade)}`}>

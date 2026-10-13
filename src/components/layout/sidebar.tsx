@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store"
+import axiosInstance from "@/services/api"
 import {
   LayoutDashboard,
   FileText,
@@ -60,10 +62,34 @@ export function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const [canAccessApproval, setCanAccessApproval] = useState(false)
+
+  useEffect(() => {
+    if (user?.role !== "staff") {
+      setCanAccessApproval(false)
+      return
+    }
+
+    let active = true
+    axiosInstance.get('/result-approval/can-approve-results')
+      .then(({ data }) => {
+        if (active) setCanAccessApproval(Boolean(data?.canApprove ?? false))
+      })
+      .catch(() => {
+        if (active) setCanAccessApproval(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [user?.id, user?.role])
 
   if (!user) return null
 
-  const navigation = navigationItems[user.role as keyof typeof navigationItems] || []
+  const navigation = (navigationItems[user.role as keyof typeof navigationItems] || []).filter((item) => {
+    if (item.id !== 'results-approval') return true
+    return user.role === 'staff' ? canAccessApproval : false
+  })
   // If backend flagged profile as incomplete or user is migrated, surface a completion link
   if ((user.requiresProfileCompletion || user.isMigrated) && user.isProfileComplete === false) {
     // Avoid duplicate entry
