@@ -47,6 +47,30 @@ export interface SingleTermReportCardDto {
   studentSignatureUrl: string | null
 }
 
+export interface MidTermSubjectResultDto {
+  subjectName: string
+  subjectCode: string
+  first_CA_Score: number
+  second_CA_Score: number
+  third_CA_Score: number
+  continuousAssessmentTotal: number
+}
+
+export interface SingleMidTermReportCardDto {
+  studentName: string
+  studentUin: string
+  gender: string
+  className: string
+  term: string
+  session: string
+  subjects: MidTermSubjectResultDto[]
+  schoolName: string
+  schoolLogo: string | null
+  studentPhotoUrl: string | null
+  principalSignatureUrl: string | null
+  studentSignatureUrl: string | null
+}
+
 export interface CumulativeSubjectResultDto {
   subjectName: string
   subjectCode: string
@@ -187,6 +211,7 @@ interface ResultsState {
   academicSessions: AcademicSession[]
   currentSession: AcademicSession | null
   reportCard: SingleTermReportCardDto | null
+  midTermReportCard: SingleMidTermReportCardDto | null
   cumulativeReportCard: CumulativeReportCardDto | null
   isLoading: boolean
   error: string | null
@@ -214,6 +239,7 @@ interface ResultsStore extends ResultsState {
   
   // Report Card
   fetchSingleTermReportCard: (studentId: string, term: number, session: string) => Promise<void>
+  fetchSingleMidTermReportCard: (studentId: string, term: number, session: string) => Promise<void>
   fetchCumulativeReportCard: (studentId: string, session: string) => Promise<void>
   clearReportCard: () => void
   
@@ -231,6 +257,7 @@ export const useResultsStore = create<ResultsStore>((set, get) => ({
   academicSessions: [],
   currentSession: null,
   reportCard: null,
+  midTermReportCard: null,
   cumulativeReportCard: null,
   isLoading: false,
   error: null,
@@ -500,7 +527,7 @@ export const useResultsStore = create<ResultsStore>((set, get) => ({
   clearError: () => set({ error: null }),
   clearStudentsForResult: () => set({ studentsForResult: [] }),
   clearSubjectResults: () => set({ subjectResults: [] }),
-  clearReportCard: () => set({ reportCard: null, cumulativeReportCard: null }),
+  clearReportCard: () => set({ reportCard: null, midTermReportCard: null, cumulativeReportCard: null }),
 
   // Fetch single-term report card
   fetchSingleTermReportCard: async (studentId: string, term: number, session: string) => {
@@ -514,6 +541,20 @@ export const useResultsStore = create<ResultsStore>((set, get) => ({
     } catch (error: any) {
       console.error('Fetch report card error:', error)
       set({ error: error.response?.data?.message || "Failed to fetch report card", isLoading: false })
+    }
+  },
+
+  fetchSingleMidTermReportCard: async (studentId: string, term: number, session: string) => {
+    set({ isLoading: true, error: null, midTermReportCard: null })
+    try {
+      const response = await axiosInstance.get(
+        `/ReportCard/midterm?studentId=${studentId}&term=${term}&session=${encodeURIComponent(session)}`
+      )
+      const data = response.data?.data || response.data
+      set({ midTermReportCard: data, isLoading: false })
+    } catch (error: any) {
+      console.error('Fetch midterm report card error:', error)
+      set({ error: error.response?.data?.message || "Failed to fetch midterm report card", isLoading: false })
     }
   },
 

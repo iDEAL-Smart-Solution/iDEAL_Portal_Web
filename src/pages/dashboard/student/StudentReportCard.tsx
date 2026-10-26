@@ -10,6 +10,7 @@ import { FileText, Printer, ChevronDown } from "lucide-react"
 import { resolveMediaUrl } from "@/lib/utils"
 import type {
   SingleTermReportCardDto,
+  SingleMidTermReportCardDto,
   CumulativeReportCardDto,
 } from "@/store/results-store"
 
@@ -57,12 +58,14 @@ export default function StudentReportCard() {
   const { user } = useAuthStore()
   const {
     reportCard,
+    midTermReportCard,
     cumulativeReportCard,
     currentSession,
     academicSessions,
     isLoading,
     error,
     fetchSingleTermReportCard,
+    fetchSingleMidTermReportCard,
     fetchCumulativeReportCard,
     fetchCurrentSession,
     fetchAcademicSessions,
@@ -71,7 +74,7 @@ export default function StudentReportCard() {
 
   const [selectedTerm, setSelectedTerm] = useState<number>(1)
   const [selectedSession, setSelectedSession] = useState<string>("")
-  const [viewMode, setViewMode] = useState<"single" | "cumulative">("single")
+  const [viewMode, setViewMode] = useState<"single" | "midterm" | "cumulative">("single")
 
   useEffect(() => {
     fetchCurrentSession()
@@ -91,20 +94,24 @@ export default function StudentReportCard() {
     clearReportCard()
     if (viewMode === "single") {
       fetchSingleTermReportCard(user.id, selectedTerm, selectedSession)
-    } else {
+    } else if (viewMode === "midterm") {
+      fetchSingleMidTermReportCard(user.id, selectedTerm, selectedSession)
+    } else if (viewMode === "cumulative" && selectedTerm === 3) {
       fetchCumulativeReportCard(user.id, selectedSession)
     }
   }
 
   const handlePrint = () => {
-    const card = viewMode === "single" ? reportCard : cumulativeReportCard
+    const card = viewMode === "single" ? reportCard : viewMode === "midterm" ? midTermReportCard : cumulativeReportCard
     if (!card) return
     const pw = window.open("", "_blank")
     if (!pw) return
     const html =
       viewMode === "single"
         ? buildSingleTermPrintHtml(reportCard!, selectedTerm)
-        : buildCumulativePrintHtml(cumulativeReportCard!)
+        : viewMode === "midterm"
+          ? buildMidTermPrintHtml(midTermReportCard!)
+          : buildCumulativePrintHtml(cumulativeReportCard!)
     pw.document.write(html)
     pw.document.close()
     pw.focus()
@@ -120,7 +127,7 @@ export default function StudentReportCard() {
     )
   }
 
-  const activeCard = viewMode === "single" ? reportCard : cumulativeReportCard
+  const activeCard = viewMode === "single" ? reportCard : viewMode === "midterm" ? midTermReportCard : cumulativeReportCard
 
   return (
     <DashboardLayout>
@@ -148,12 +155,13 @@ export default function StudentReportCard() {
                   <select
                     value={viewMode}
                     onChange={(e) => {
-                      setViewMode(e.target.value as "single" | "cumulative")
+                      setViewMode(e.target.value as "single" | "midterm" | "cumulative")
                       clearReportCard()
                     }}
                     className="w-full appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="single">Single Term</option>
+                    <option value="midterm">Mid-term</option>
                     <option value="cumulative">Cumulative (Annual)</option>
                   </select>
                   <ChevronDown className="absolute right-2 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -177,7 +185,7 @@ export default function StudentReportCard() {
                 </div>
               </div>
 
-              {viewMode === "single" && (
+              {(viewMode === "single" || viewMode === "midterm" || viewMode === "cumulative") && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Term</label>
                   <div className="relative">
@@ -196,11 +204,14 @@ export default function StudentReportCard() {
               )}
 
               <div>
-                <Button onClick={handleFetch} disabled={isLoading || !selectedSession} className="w-full">
+                <Button onClick={handleFetch} disabled={isLoading || !selectedSession || (viewMode === "cumulative" && selectedTerm !== 3)} className="w-full">
                   {isLoading ? "Loading..." : "View Report Card"}
                 </Button>
               </div>
             </div>
+            {viewMode === "cumulative" && selectedTerm !== 3 && (
+              <p className="mt-3 text-sm text-amber-700">Cumulative report cards are available for the third term only.</p>
+            )}
           </CardContent>
         </Card>
 
@@ -223,6 +234,10 @@ export default function StudentReportCard() {
             data={reportCard}
             termNum={selectedTerm}
           />
+        )}
+
+        {!isLoading && !error && viewMode === "midterm" && midTermReportCard && (
+          <MidTermReportCardView data={midTermReportCard} />
         )}
 
         {!isLoading && !error && viewMode === "cumulative" && cumulativeReportCard && (
@@ -367,13 +382,7 @@ function SingleTermReportCardView({
                   Exam<br />Score
                 </th>
                 <th className="border border-blue-800 px-1 py-2 text-center font-semibold w-16">
-                  1st Term<br />Score (%)
-                </th>
-                <th className="border border-blue-800 px-1 py-2 text-center font-semibold w-16">
-                  2nd Term<br />Score (%)
-                </th>
-                <th className="border border-blue-800 px-1 py-2 text-center font-semibold w-16">
-                  3rd Term<br />Score (%)
+                  {termLabel(termNum)}<br />Score (%)
                 </th>
                 <th className="border border-blue-800 px-1 py-2 text-center font-semibold w-12">
                   Grade
@@ -401,15 +410,8 @@ function SingleTermReportCardView({
                   <td className="border border-gray-300 px-1 py-1.5 text-center">
                     {subj.exam}
                   </td>
-                  {/* 1st, 2nd, 3rd term columns — only current term shows total */}
                   <td className="border border-gray-300 px-1 py-1.5 text-center font-semibold">
-                    {termNum === 1 ? subj.totalScore : ""}
-                  </td>
-                  <td className="border border-gray-300 px-1 py-1.5 text-center font-semibold">
-                    {termNum === 2 ? subj.totalScore : ""}
-                  </td>
-                  <td className="border border-gray-300 px-1 py-1.5 text-center font-semibold">
-                    {termNum === 3 ? subj.totalScore : ""}
+                    {subj.totalScore}
                   </td>
                   <td className="border border-gray-300 px-1 py-1.5 text-center font-bold">
                     {subj.grade}
@@ -550,6 +552,18 @@ function SingleTermReportCardView({
 /* ════════════════════════════════════════
    CUMULATIVE — ON-SCREEN VIEW
    ════════════════════════════════════════ */
+
+function MidTermReportCardView({ data }: { data: SingleMidTermReportCardDto }) {
+  return <Card className="overflow-hidden border-0 shadow-lg"><CardContent className="p-0">
+    <div className="bg-blue-900 text-white px-6 py-4 text-center"><h1 className="text-xl font-extrabold uppercase">{data.schoolName}</h1><p className="text-blue-100 text-xs mt-1">Mid-term Report Sheet</p></div>
+    <div className="grid grid-cols-2 md:grid-cols-4 border border-gray-300 text-xs"><InfoCell label="STUDENT'S NAME" value={data.studentName} /><InfoCell label="SESSION" value={data.session} /><InfoCell label="TERM" value={data.term.toUpperCase()} /><InfoCell label="CLASS" value={data.className} /><InfoCell label="STUDENT ID" value={data.studentUin} /><InfoCell label="GENDER" value={data.gender} /></div>
+    <div className="p-4"><SectionBanner>Mid-term Assessment — Continuous Assessment Only</SectionBanner><div className="overflow-x-auto border border-gray-300"><table className="w-full text-xs border-collapse min-w-[620px]">
+      <thead><tr className="bg-blue-900 text-white text-[10px]"><th className="border border-blue-800 px-2 py-2 text-left">SUBJECTS</th><th className="border border-blue-800 px-1 py-2">1st CA</th><th className="border border-blue-800 px-1 py-2">2nd CA</th><th className="border border-blue-800 px-1 py-2">3rd CA</th><th className="border border-blue-800 px-1 py-2">CA TOTAL</th></tr></thead>
+      <tbody>{data.subjects.map((subject, index) => <tr key={subject.subjectCode} className={index % 2 ? "bg-blue-50/40" : "bg-white"}><td className="border border-gray-300 px-2 py-1.5 font-medium uppercase">{subject.subjectName}</td><td className="border border-gray-300 px-1 py-1.5 text-center">{subject.first_CA_Score}</td><td className="border border-gray-300 px-1 py-1.5 text-center">{subject.second_CA_Score}</td><td className="border border-gray-300 px-1 py-1.5 text-center">{subject.third_CA_Score}</td><td className="border border-gray-300 px-1 py-1.5 text-center font-semibold">{subject.continuousAssessmentTotal}</td></tr>)}</tbody>
+    </table></div></div>
+    <div className="flex justify-between p-4 text-xs"><div>{data.principalSignatureUrl && <img src={resolveMediaUrl(data.principalSignatureUrl)} alt="Principal signature" className="h-8 max-w-40 object-contain" />}Principal</div><div>{data.studentSignatureUrl && <img src={resolveMediaUrl(data.studentSignatureUrl)} alt="Student signature" className="h-8 max-w-40 object-contain" />}Student</div></div>
+  </CardContent></Card>
+}
 
 function CumulativeReportCardView({
   data,
@@ -905,6 +919,18 @@ td,th{border:1px solid #bbb;padding:4px 6px}
    PRINT HTML — SINGLE TERM
    ════════════════════════════════════════ */
 
+function buildMidTermPrintHtml(data: SingleMidTermReportCardDto): string {
+  const primary = (typeof window !== 'undefined') ? getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#1e3a5f' : '#1e3a5f'
+  const styles = PRINT_STYLES.replace(/__PRIMARY__/g, primary.trim())
+  const rows = data.subjects.map(subject => `<tr><td class="subj">${subject.subjectName.toUpperCase()}</td><td class="c">${subject.first_CA_Score}</td><td class="c">${subject.second_CA_Score}</td><td class="c">${subject.third_CA_Score}</td><td class="c b">${subject.continuousAssessmentTotal}</td></tr>`).join('')
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mid-term Report — ${data.studentName}</title><style>${styles}</style></head><body><div class="page">
+    <div class="header"><div class="logo">${data.schoolLogo ? `<img src="${resolveMediaUrl(data.schoolLogo)}" alt="School logo" />` : ''}</div><div class="meta"><h1>${data.schoolName}</h1><div class="sub">Mid-term Report Sheet</div></div><div class="student-photo">${data.studentPhotoUrl ? `<img src="${resolveMediaUrl(data.studentPhotoUrl)}" alt="Student photo" />` : ''}</div></div>
+    <table class="info"><tr><td><span class="lbl">STUDENT'S NAME:</span> ${data.studentName}</td><td><span class="lbl">SESSION:</span> ${data.session}</td><td><span class="lbl">TERM:</span> ${data.term}</td><td><span class="lbl">CLASS:</span> ${data.className}</td></tr><tr><td><span class="lbl">STUDENT ID:</span> ${data.studentUin}</td><td><span class="lbl">GENDER:</span> ${data.gender}</td><td colspan="2"></td></tr></table>
+    <table><tr><td class="sh" colspan="5">Mid-term Assessment — Continuous Assessment Only</td></tr></table><table class="at"><thead><tr><th style="text-align:left">SUBJECTS</th><th>1st CA</th><th>2nd CA</th><th>3rd CA</th><th>CA Total</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="siggrid"><div class="in"><div class="sigbox">${data.principalSignatureUrl ? `<img src="${resolveMediaUrl(data.principalSignatureUrl)}" alt="Principal signature" />` : ''}</div><strong>Principal</strong></div><div class="in"><div class="sigbox">${data.studentSignatureUrl ? `<img src="${resolveMediaUrl(data.studentSignatureUrl)}" alt="Student signature" />` : ''}</div><strong>Student</strong></div></div>
+    <script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });</script></div></body></html>`
+}
+
 function buildSingleTermPrintHtml(
   data: SingleTermReportCardDto,
   termNum: number,
@@ -919,9 +945,7 @@ function buildSingleTermPrintHtml(
         <td class="c">100</td>
         <td class="c">${caTotal(s)}</td>
         <td class="c">${s.exam}</td>
-        <td class="c b">${termNum === 1 ? s.totalScore : ""}</td>
-        <td class="c b">${termNum === 2 ? s.totalScore : ""}</td>
-        <td class="c b">${termNum === 3 ? s.totalScore : ""}</td>
+        <td class="c b">${s.totalScore}</td>
         <td class="c b">${s.grade}</td>
         <td class="c">${s.remark}</td>
       </tr>`,
@@ -1001,7 +1025,7 @@ function buildSingleTermPrintHtml(
   </tr>
 </table>
 
-<table><tr><td class="sh" colspan="9">Assessment</td></tr></table>
+<table><tr><td class="sh" colspan="7">Assessment</td></tr></table>
 <table class="at">
   <thead>
     <tr>
@@ -1009,9 +1033,7 @@ function buildSingleTermPrintHtml(
       <th>Marks<br>Obtainable</th>
       <th>Continues<br>Assessment</th>
       <th>Exam<br>Score</th>
-      <th>1st Term<br>Score (%)</th>
-      <th>2nd Term<br>Score (%)</th>
-      <th>3rd Term<br>Score (%)</th>
+      <th>${termLabel(termNum)}<br>Score (%)</th>
       <th>Grade</th>
       <th>Remarks</th>
     </tr>
