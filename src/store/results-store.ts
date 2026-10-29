@@ -39,10 +39,12 @@ export interface SingleTermReportCardDto {
   position: number
   totalStudents: number
   principalRemark: string
+  classTeacherComment: string | null
   schoolName: string
   schoolLogo: string | null
   nextTermBeginsOn: string | null
   studentPhotoUrl: string | null
+  classTeacherSignatureUrl: string | null
   principalSignatureUrl: string | null
   studentSignatureUrl: string | null
 }
@@ -64,9 +66,16 @@ export interface SingleMidTermReportCardDto {
   term: string
   session: string
   subjects: MidTermSubjectResultDto[]
+  percentage: number
+  position: number
+  totalStudents: number
+  principalRemark: string
+  nextTermBeginsOn: string | null
+  classTeacherComment: string | null
   schoolName: string
   schoolLogo: string | null
   studentPhotoUrl: string | null
+  classTeacherSignatureUrl: string | null
   principalSignatureUrl: string | null
   studentSignatureUrl: string | null
 }
@@ -94,10 +103,12 @@ export interface CumulativeReportCardDto {
   cumulativePosition: number
   totalStudents: number
   principalRemark: string
+  classTeacherComment: string | null
   schoolName: string
   schoolLogo: string | null
   nextTermBeginsOn: string | null
   studentPhotoUrl: string | null
+  classTeacherSignatureUrl: string | null
   principalSignatureUrl: string | null
   studentSignatureUrl: string | null
 }

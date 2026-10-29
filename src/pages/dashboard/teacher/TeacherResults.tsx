@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FileText, Upload, Users, BookOpen, Eye, Trash2, AlertCircle, CheckCircle, Edit } from "lucide-react"
 import type { CreateResultDto, StudentForResult, DetailedResult } from "@/store/results-store"
 import { showError, showSuccess, showWarning } from "@/lib/notifications"
+import axiosInstance from "@/services/api"
 
 export default function TeacherResults() {
   const { user } = useAuthStore()
@@ -49,6 +50,7 @@ export default function TeacherResults() {
   const [overwriteExisting, setOverwriteExisting] = useState(false)
   const [editingResultId, setEditingResultId] = useState<string | null>(null)
   const [isTemplateDownloading, setIsTemplateDownloading] = useState(false)
+  const [scoreShare, setScoreShare] = useState<{ caShare: number; examShare: number; caPerAssessment: number } | null>(null)
 
   const [resultForm, setResultForm] = useState({
     studentId: "",
@@ -67,6 +69,12 @@ export default function TeacherResults() {
       fetchCurrentSession()
     }
   }, [user, fetchTeacherSubjects, fetchCurrentSession])
+
+  useEffect(() => {
+    axiosInstance.get('/SystemConfigurations/score-share')
+      .then(({ data }) => setScoreShare(data))
+      .catch((requestError) => showError(requestError?.response?.data?.message || 'Could not load the school score standard.'))
+  }, [])
 
   useEffect(() => {
     if (!selectedSubject) {
@@ -333,22 +341,22 @@ export default function TeacherResults() {
     {
       key: 'firstCAScore' as keyof DetailedResult,
       label: '1st CA',
-      render: (value: number) => <span className="text-center">{value}/10</span>,
+      render: (value: number) => <span className="text-center">{value}/{scoreShare?.caPerAssessment ?? '—'}</span>,
     },
     {
       key: 'secondCAScore' as keyof DetailedResult,
       label: '2nd CA',
-      render: (value: number) => <span className="text-center">{value}/10</span>,
+      render: (value: number) => <span className="text-center">{value}/{scoreShare?.caPerAssessment ?? '—'}</span>,
     },
     {
       key: 'thirdCAScore' as keyof DetailedResult,
       label: '3rd CA',
-      render: (value: number) => <span className="text-center">{value}/10</span>,
+      render: (value: number) => <span className="text-center">{value}/{scoreShare?.caPerAssessment ?? '—'}</span>,
     },
     {
       key: 'examScore' as keyof DetailedResult,
       label: 'Exam',
-      render: (value: number) => <span className="text-center">{value}/70</span>,
+      render: (value: number) => <span className="text-center">{value}/{scoreShare?.examShare ?? '—'}</span>,
     },
     {
       key: 'totalScore' as keyof DetailedResult,
@@ -515,10 +523,10 @@ export default function TeacherResults() {
                           <td className="p-3"><Badge variant="outline">{result.subjectCode}</Badge></td>
                           <td className="p-3">{result.term}</td>
                           <td className="p-3">{result.academicYear}</td>
-                          <td className="p-3 text-center">{result.firstCAScore}/10</td>
-                          <td className="p-3 text-center">{result.secondCAScore}/10</td>
-                          <td className="p-3 text-center">{result.thirdCAScore}/10</td>
-                          <td className="p-3 text-center">{result.examScore}/70</td>
+                          <td className="p-3 text-center">{result.firstCAScore}/{scoreShare?.caPerAssessment ?? '—'}</td>
+                          <td className="p-3 text-center">{result.secondCAScore}/{scoreShare?.caPerAssessment ?? '—'}</td>
+                          <td className="p-3 text-center">{result.thirdCAScore}/{scoreShare?.caPerAssessment ?? '—'}</td>
+                          <td className="p-3 text-center">{result.examScore}/{scoreShare?.examShare ?? '—'}</td>
                           <td className="p-3 text-center">
                             <Badge
                               variant="outline"
@@ -856,20 +864,20 @@ export default function TeacherResults() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstCA">1st CA Score (Max 10)</Label>
-                  <Input id="firstCA" type="number" min="0" max="10" value={resultForm.firstCA} onChange={(event) => setResultForm({ ...resultForm, firstCA: Math.min(10, Number(event.target.value)) })} required />
+                  <Label htmlFor="firstCA">1st CA Score (Max {scoreShare?.caPerAssessment ?? '…'})</Label>
+                  <Input id="firstCA" type="number" min="0" max={scoreShare?.caPerAssessment} step="any" value={resultForm.firstCA} onChange={(event) => setResultForm({ ...resultForm, firstCA: Number(event.target.value) })} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="secondCA">2nd CA Score (Max 10)</Label>
-                  <Input id="secondCA" type="number" min="0" max="10" value={resultForm.secondCA} onChange={(event) => setResultForm({ ...resultForm, secondCA: Math.min(10, Number(event.target.value)) })} required />
+                  <Label htmlFor="secondCA">2nd CA Score (Max {scoreShare?.caPerAssessment ?? '…'})</Label>
+                  <Input id="secondCA" type="number" min="0" max={scoreShare?.caPerAssessment} step="any" value={resultForm.secondCA} onChange={(event) => setResultForm({ ...resultForm, secondCA: Number(event.target.value) })} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="thirdCA">3rd CA Score (Max 10)</Label>
-                  <Input id="thirdCA" type="number" min="0" max="10" value={resultForm.thirdCA} onChange={(event) => setResultForm({ ...resultForm, thirdCA: Math.min(10, Number(event.target.value)) })} required />
+                  <Label htmlFor="thirdCA">3rd CA Score (Max {scoreShare?.caPerAssessment ?? '…'})</Label>
+                  <Input id="thirdCA" type="number" min="0" max={scoreShare?.caPerAssessment} step="any" value={resultForm.thirdCA} onChange={(event) => setResultForm({ ...resultForm, thirdCA: Number(event.target.value) })} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="exam">Exam Score (Max 70)</Label>
-                  <Input id="exam" type="number" min="0" max="70" value={resultForm.exam} onChange={(event) => setResultForm({ ...resultForm, exam: Math.min(70, Number(event.target.value)) })} required />
+                  <Label htmlFor="exam">Exam Score (Max {scoreShare?.examShare ?? '…'})</Label>
+                  <Input id="exam" type="number" min="0" max={scoreShare?.examShare} step="any" value={resultForm.exam} onChange={(event) => setResultForm({ ...resultForm, exam: Number(event.target.value) })} required />
                 </div>
               </div>
 

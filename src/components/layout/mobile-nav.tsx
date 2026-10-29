@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store"
-import axiosInstance from "@/services/api"
+import { useStaffClassAccess } from "@/hooks/use-staff-class-access"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -43,6 +42,7 @@ const navigationItems = {
     { name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
     { name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList },
+    { name: "My Classes", href: "/dashboard/teacher/classes", icon: Users },
     { name: "Approve Results", href: "/dashboard/teacher/results-approval", icon: ClipboardCheck },
     { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
   ],
@@ -51,6 +51,7 @@ const navigationItems = {
     { name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText },
     { name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen },
     { name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList },
+    { name: "My Classes", href: "/dashboard/teacher/classes", icon: Users },
     { name: "Approve Results", href: "/dashboard/teacher/results-approval", icon: ClipboardCheck },
     { name: "Resources", href: "/dashboard/teacher/resources", icon: Upload },
   ],
@@ -68,32 +69,12 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
-  const [canAccessApproval, setCanAccessApproval] = useState(false)
-
-  useEffect(() => {
-    if (user?.role !== "staff") {
-      setCanAccessApproval(false)
-      return
-    }
-
-    let active = true
-    axiosInstance.get('/result-approval/can-approve-results')
-      .then(({ data }) => {
-        if (active) setCanAccessApproval(Boolean(data?.canApprove ?? false))
-      })
-      .catch(() => {
-        if (active) setCanAccessApproval(false)
-      })
-
-    return () => {
-      active = false
-    }
-  }, [user?.id, user?.role])
+  const canAccessApproval = useStaffClassAccess(user?.id, user?.role === "staff")
 
   if (!user) return null
 
   const navigation = (navigationItems[user.role as keyof typeof navigationItems] || []).filter((item) => {
-    if (item.name !== 'Approve Results') return true
+    if (item.name !== 'Approve Results' && item.name !== 'My Classes') return true
     return user.role === 'staff' ? canAccessApproval : false
   })
   const branding = resolveSchoolBranding(user)

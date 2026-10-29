@@ -50,6 +50,16 @@ function formatPosition(pos: number): string {
   return pos + (s[(v - 20) % 10] || s[v] || s[0])
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character] || character)
+}
+
 /* ════════════════════════════════════════
    MAIN PAGE
    ════════════════════════════════════════ */
@@ -493,9 +503,9 @@ function SingleTermReportCardView({
             <span className="font-bold whitespace-nowrap">
               Class Teacher's Comment:
             </span>
-            <span className="flex-1 border-b border-gray-400 min-h-[1.2em]" />
+            <span className="flex-1 border-b border-gray-400 min-h-[1.2em] italic text-gray-700 whitespace-pre-wrap">{data.classTeacherComment || ""}</span>
             <span className="font-bold whitespace-nowrap ml-4">Signature:</span>
-            <span className="w-28 border-b border-gray-400" />
+            <span className="flex h-7 w-28 items-end justify-center border-b border-gray-400">{data.classTeacherSignatureUrl ? <img src={resolveMediaUrl(data.classTeacherSignatureUrl)} alt="Class teacher signature" className="max-h-7 max-w-full object-contain" /> : null}</span>
           </div>
         </div>
 
@@ -554,17 +564,117 @@ function SingleTermReportCardView({
    ════════════════════════════════════════ */
 
 function MidTermReportCardView({ data }: { data: SingleMidTermReportCardDto }) {
-  return <Card className="overflow-hidden border-0 shadow-lg"><CardContent className="p-0">
-    <div className="bg-blue-900 text-white px-6 py-4 text-center"><h1 className="text-xl font-extrabold uppercase">{data.schoolName}</h1><p className="text-blue-100 text-xs mt-1">Mid-term Report Sheet</p></div>
-    <div className="grid grid-cols-2 md:grid-cols-4 border border-gray-300 text-xs"><InfoCell label="STUDENT'S NAME" value={data.studentName} /><InfoCell label="SESSION" value={data.session} /><InfoCell label="TERM" value={data.term.toUpperCase()} /><InfoCell label="CLASS" value={data.className} /><InfoCell label="STUDENT ID" value={data.studentUin} /><InfoCell label="GENDER" value={data.gender} /></div>
-    <div className="p-4"><SectionBanner>Mid-term Assessment — Continuous Assessment Only</SectionBanner><div className="overflow-x-auto border border-gray-300"><table className="w-full text-xs border-collapse min-w-[620px]">
-      <thead><tr className="bg-blue-900 text-white text-[10px]"><th className="border border-blue-800 px-2 py-2 text-left">SUBJECTS</th><th className="border border-blue-800 px-1 py-2">1st CA</th><th className="border border-blue-800 px-1 py-2">2nd CA</th><th className="border border-blue-800 px-1 py-2">3rd CA</th><th className="border border-blue-800 px-1 py-2">CA TOTAL</th></tr></thead>
-      <tbody>{data.subjects.map((subject, index) => <tr key={subject.subjectCode} className={index % 2 ? "bg-blue-50/40" : "bg-white"}><td className="border border-gray-300 px-2 py-1.5 font-medium uppercase">{subject.subjectName}</td><td className="border border-gray-300 px-1 py-1.5 text-center">{subject.first_CA_Score}</td><td className="border border-gray-300 px-1 py-1.5 text-center">{subject.second_CA_Score}</td><td className="border border-gray-300 px-1 py-1.5 text-center">{subject.third_CA_Score}</td><td className="border border-gray-300 px-1 py-1.5 text-center font-semibold">{subject.continuousAssessmentTotal}</td></tr>)}</tbody>
-    </table></div></div>
-    <div className="flex justify-between p-4 text-xs"><div>{data.principalSignatureUrl && <img src={resolveMediaUrl(data.principalSignatureUrl)} alt="Principal signature" className="h-8 max-w-40 object-contain" />}Principal</div><div>{data.studentSignatureUrl && <img src={resolveMediaUrl(data.studentSignatureUrl)} alt="Student signature" className="h-8 max-w-40 object-contain" />}Student</div></div>
-  </CardContent></Card>
-}
+  const termName = data.term.toLowerCase() === "first"
+    ? "1ST TERM"
+    : data.term.toLowerCase() === "second"
+      ? "2ND TERM"
+      : "3RD TERM"
+  const resumeDate = data.nextTermBeginsOn
+    ? new Date(data.nextTermBeginsOn).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : ""
 
+  return (
+    <Card className="overflow-hidden border-0 shadow-lg">
+      <CardContent className="p-0">
+        <div className="bg-blue-900 text-white flex items-center justify-between gap-4 px-6 py-4">
+          <div className="w-14 h-14 rounded-full bg-white p-1 flex-shrink-0 overflow-hidden flex items-center justify-center">
+            {data.schoolLogo && <img src={resolveMediaUrl(data.schoolLogo)} alt="logo" className="w-full h-full object-contain" />}
+          </div>
+          <div className="flex-1 text-center">
+            <h1 className="text-2xl font-extrabold uppercase tracking-wide leading-tight">{data.schoolName}</h1>
+            <p className="text-blue-100 text-xs mt-1 uppercase tracking-wider">Report Sheet</p>
+          </div>
+          <div className="w-14 h-14 rounded-full bg-white p-1 flex-shrink-0 overflow-hidden flex items-center justify-center">
+            {data.studentPhotoUrl ? <img src={resolveMediaUrl(data.studentPhotoUrl)} alt={`${data.studentName} profile`} className="w-full h-full object-cover rounded-full" /> : <div className="text-[8px] text-gray-400 text-center">No photo</div>}
+          </div>
+        </div>
+
+        <div className="border border-gray-300 text-xs">
+          <div className="flex divide-x divide-gray-300">
+            <InfoCell label="STUDENT'S NAME" value={data.studentName} className="flex-[2]" />
+            <InfoCell label="SESSION" value={data.session} className="flex-1" />
+            <InfoCell label="TERM" value={termName} className="flex-1" />
+            <InfoCell label="CLASS" value={data.className} className="flex-1" />
+            <InfoCell label="PERFORMANCE" value={`${data.percentage.toFixed(1)}%`} className="flex-1" />
+          </div>
+          <div className="flex divide-x divide-gray-300 border-t border-gray-300">
+            <InfoCell label="NO. IN CLASS" value={String(data.totalStudents)} className="flex-1" />
+            <InfoCell label="POSITION" value={formatPosition(data.position)} className="flex-1" />
+            <InfoCell label="GENDER" value={data.gender} className="flex-1" />
+            <InfoCell label="STUDENT ID" value={data.studentUin} className="flex-[2]" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 text-xs border-x border-b border-gray-300">
+          <div className="border-r border-gray-300">
+            <SectionBanner>Attendance</SectionBanner>
+            <InfoRow label="No. of Times School Opened" value="" />
+            <InfoRow label="No. of Times Present" value="" />
+            <InfoRow label="No. of Times Punctual" value="" />
+          </div>
+          <div>
+            <SectionBanner>Weight / Height</SectionBanner>
+            <InfoRow label="Expected Date of Resumption" value={resumeDate} />
+            <InfoRow label="Height at the end of term" value="" />
+            <InfoRow label="Weight at the beginning of term" value="" />
+            <InfoRow label="Weight at the end of term" value="" />
+          </div>
+        </div>
+
+        <div className="border-x border-gray-300"><SectionBanner>Mid-term Assessment - Continuous Assessment Only</SectionBanner></div>
+        <div className="overflow-x-auto border border-gray-300">
+          <table className="w-full text-xs border-collapse min-w-[700px]">
+            <thead><tr className="bg-blue-900 text-white text-[10px]">
+              <th className="border border-blue-800 px-2 py-2 text-left font-semibold">SUBJECTS</th>
+              <th className="border border-blue-800 px-1 py-2 text-center font-semibold">1st CA</th>
+              <th className="border border-blue-800 px-1 py-2 text-center font-semibold">2nd CA</th>
+              <th className="border border-blue-800 px-1 py-2 text-center font-semibold">3rd CA</th>
+              <th className="border border-blue-800 px-1 py-2 text-center font-semibold">CA Total</th>
+            </tr></thead>
+            <tbody>{data.subjects.map((subject, index) => (
+              <tr key={subject.subjectCode} className={index % 2 === 0 ? "bg-white" : "bg-blue-50/40"}>
+                <td className="border border-gray-300 px-2 py-1.5 font-medium uppercase">{subject.subjectName}</td>
+                <td className="border border-gray-300 px-1 py-1.5 text-center">{subject.first_CA_Score}</td>
+                <td className="border border-gray-300 px-1 py-1.5 text-center">{subject.second_CA_Score}</td>
+                <td className="border border-gray-300 px-1 py-1.5 text-center">{subject.third_CA_Score}</td>
+                <td className="border border-gray-300 px-1 py-1.5 text-center font-semibold">{subject.continuousAssessmentTotal}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+
+        <div className="grid grid-cols-2 text-xs border-x border-b border-gray-300">
+          <div className="border-r border-gray-300 p-3">
+            <h4 className="font-bold uppercase text-[10px] mb-2 text-blue-900">Grading Method</h4>
+            <table className="w-full text-[10px]"><tbody>{GRADING_TABLE.map((grade) => (
+              <tr key={grade.grade} className="border-b border-gray-200 last:border-0">
+                <td className="py-0.5 font-semibold w-24">{grade.grade} = {grade.range}</td><td className="py-0.5 pl-2">{grade.remark}</td>
+              </tr>
+            ))}</tbody></table>
+          </div>
+          <div className="p-3">
+            <h4 className="font-bold uppercase text-[10px] mb-2 text-blue-900">Effectiveness</h4>
+            <table className="w-full text-[10px]"><thead><tr><th className="text-left py-0.5" />{[5, 4, 3, 2, 1].map((score) => <th key={score} className="text-center py-0.5 w-6 font-semibold">{score}</th>)}</tr></thead>
+              <tbody>{EFFECTIVENESS_ITEMS.map((item) => <tr key={item} className="border-b border-gray-200 last:border-0"><td className="py-0.5">{item}</td>{[5, 4, 3, 2, 1].map((score) => <td key={score} className="text-center py-0.5"><div className="w-3.5 h-3.5 border border-gray-300 rounded-sm mx-auto" /></td>)}</tr>)}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="border-x border-b border-gray-300 px-4 py-3 text-xs">
+          <div className="flex items-end gap-3"><span className="font-bold whitespace-nowrap">Class Teacher's Comment:</span><span className="flex-1 border-b border-gray-400 min-h-[1.2em] italic text-gray-700 whitespace-pre-wrap">{data.classTeacherComment || ""}</span><span className="font-bold whitespace-nowrap ml-4">Signature:</span><span className="flex h-7 w-28 items-end justify-center border-b border-gray-400">{data.classTeacherSignatureUrl && <img src={resolveMediaUrl(data.classTeacherSignatureUrl)} alt="Class teacher signature" className="max-h-7 max-w-full object-contain" />}</span></div>
+        </div>
+        <div className="border-x border-b border-gray-300 px-4 py-3 text-xs">
+          <div className="flex items-start gap-2"><span className="font-bold whitespace-nowrap">Principal's Comment:</span><span className="flex-1 italic text-gray-700">{data.principalRemark}</span></div>
+          <div className="border-b border-gray-400 mt-2" />
+        </div>
+        <div className="flex justify-between gap-6 border border-gray-300 border-t-0 px-4 py-3 text-[10px]">
+          <div className="flex-1"><div className="h-12 border-b-2 border-gray-400 flex items-end justify-start pb-1 mb-1">{data.principalSignatureUrl && <img src={resolveMediaUrl(data.principalSignatureUrl)} alt="Principal signature" className="max-h-10 max-w-full object-contain" />}</div><p className="font-bold italic text-xs">Principal</p><p className="font-bold uppercase text-[9px]">{data.schoolName}</p></div>
+          <div className="flex-1 text-right"><div className="h-12 border-b-2 border-gray-400 flex items-end justify-end pb-1 mb-1">{data.studentSignatureUrl && <img src={resolveMediaUrl(data.studentSignatureUrl)} alt="Student signature" className="max-h-10 max-w-full object-contain" />}</div><p className="font-bold italic text-xs">Student</p><p className="font-bold uppercase text-[9px]">{data.studentName}</p></div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 function CumulativeReportCardView({
   data,
 }: {
@@ -774,9 +884,9 @@ function CumulativeReportCardView({
         <div className="border-x border-b border-gray-300 px-4 py-3 text-xs">
           <div className="flex items-end gap-3">
             <span className="font-bold whitespace-nowrap">Class Teacher's Comment:</span>
-            <span className="flex-1 border-b border-gray-400 min-h-[1.2em]" />
+            <span className="flex-1 border-b border-gray-400 min-h-[1.2em] italic text-gray-700 whitespace-pre-wrap">{data.classTeacherComment || ""}</span>
             <span className="font-bold whitespace-nowrap ml-4">Signature:</span>
-            <span className="w-28 border-b border-gray-400" />
+            <span className="flex h-7 w-28 items-end justify-center border-b border-gray-400">{data.classTeacherSignatureUrl ? <img src={resolveMediaUrl(data.classTeacherSignatureUrl)} alt="Class teacher signature" className="max-h-7 max-w-full object-contain" /> : null}</span>
           </div>
         </div>
         <div className="border-x border-b border-gray-300 px-4 py-3 text-xs">
@@ -920,17 +1030,50 @@ td,th{border:1px solid #bbb;padding:4px 6px}
    ════════════════════════════════════════ */
 
 function buildMidTermPrintHtml(data: SingleMidTermReportCardDto): string {
+  const termName = data.term.toLowerCase() === 'first' ? '1ST TERM' : data.term.toLowerCase() === 'second' ? '2ND TERM' : '3RD TERM'
   const primary = (typeof window !== 'undefined') ? getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#1e3a5f' : '#1e3a5f'
   const styles = PRINT_STYLES.replace(/__PRIMARY__/g, primary.trim())
   const rows = data.subjects.map(subject => `<tr><td class="subj">${subject.subjectName.toUpperCase()}</td><td class="c">${subject.first_CA_Score}</td><td class="c">${subject.second_CA_Score}</td><td class="c">${subject.third_CA_Score}</td><td class="c b">${subject.continuousAssessmentTotal}</td></tr>`).join('')
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mid-term Report — ${data.studentName}</title><style>${styles}</style></head><body><div class="page">
-    <div class="header"><div class="logo">${data.schoolLogo ? `<img src="${resolveMediaUrl(data.schoolLogo)}" alt="School logo" />` : ''}</div><div class="meta"><h1>${data.schoolName}</h1><div class="sub">Mid-term Report Sheet</div></div><div class="student-photo">${data.studentPhotoUrl ? `<img src="${resolveMediaUrl(data.studentPhotoUrl)}" alt="Student photo" />` : ''}</div></div>
-    <table class="info"><tr><td><span class="lbl">STUDENT'S NAME:</span> ${data.studentName}</td><td><span class="lbl">SESSION:</span> ${data.session}</td><td><span class="lbl">TERM:</span> ${data.term}</td><td><span class="lbl">CLASS:</span> ${data.className}</td></tr><tr><td><span class="lbl">STUDENT ID:</span> ${data.studentUin}</td><td><span class="lbl">GENDER:</span> ${data.gender}</td><td colspan="2"></td></tr></table>
-    <table><tr><td class="sh" colspan="5">Mid-term Assessment — Continuous Assessment Only</td></tr></table><table class="at"><thead><tr><th style="text-align:left">SUBJECTS</th><th>1st CA</th><th>2nd CA</th><th>3rd CA</th><th>CA Total</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="siggrid"><div class="in"><div class="sigbox">${data.principalSignatureUrl ? `<img src="${resolveMediaUrl(data.principalSignatureUrl)}" alt="Principal signature" />` : ''}</div><strong>Principal</strong></div><div class="in"><div class="sigbox">${data.studentSignatureUrl ? `<img src="${resolveMediaUrl(data.studentSignatureUrl)}" alt="Student signature" />` : ''}</div><strong>Student</strong></div></div>
-    <script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });</script></div></body></html>`
-}
+  const gradingRows = GRADING_TABLE.map(grade => `<tr><td style="font-weight:600">${grade.grade} = ${grade.range}</td><td>${grade.remark}</td></tr>`).join('')
+  const effectivenessRows = EFFECTIVENESS_ITEMS.map(item => `<tr><td>${item}</td>${[5, 4, 3, 2, 1].map(() => `<td class="c"><div class="bx"></div></td>`).join('')}</tr>`).join('')
+  const resumeDate = data.nextTermBeginsOn
+    ? new Date(data.nextTermBeginsOn).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : ''
 
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mid-term Report — ${data.studentName}</title><style>${styles}</style></head><body>
+<div class="page">
+  <div class="header">
+    <div class="logo">${data.schoolLogo ? `<img src="${resolveMediaUrl(data.schoolLogo)}" alt="${data.schoolName} logo" />` : ''}</div>
+    <div class="meta"><h1>${data.schoolName}</h1><div class="sub">Report Sheet</div></div>
+    <div class="student-photo">${data.studentPhotoUrl ? `<img src="${resolveMediaUrl(data.studentPhotoUrl)}" alt="${data.studentName} profile" />` : '<span style="font-size:9px;color:#666;text-align:center;line-height:1.2;padding:4px">No photo uploaded</span>'}</div>
+  </div>
+  <table class="info">
+    <tr><td><span class="lbl">STUDENT'S NAME:</span> ${data.studentName}</td><td><span class="lbl">SESSION:</span> ${data.session}</td><td><span class="lbl">TERM:</span> ${termName}</td><td><span class="lbl">CLASS:</span> ${data.className}</td><td><span class="lbl">PERFORMANCE:</span> ${data.percentage.toFixed(1)}%</td></tr>
+    <tr><td><span class="lbl">NO. IN CLASS:</span> ${data.totalStudents}</td><td><span class="lbl">POSITION:</span> ${formatPosition(data.position)}</td><td><span class="lbl">GENDER:</span> ${data.gender}</td><td colspan="2"><span class="lbl">STUDENT ID:</span> ${data.studentUin}</td></tr>
+  </table>
+  <table><tr><td class="sh" style="width:50%">Attendance</td><td class="sh">Weight / Height</td></tr></table>
+  <table>
+    <tr><td style="width:25%">No. of Times School Opened</td><td style="width:25%"></td><td style="width:25%">Expected Date of Resumption</td><td style="width:25%">${resumeDate}</td></tr>
+    <tr><td>No. of Times Present</td><td></td><td>Height at the end of term</td><td></td></tr>
+    <tr><td>No. of Times Punctual</td><td></td><td>Weight at the beginning of term</td><td></td></tr>
+    <tr><td></td><td></td><td>Weight at the end of term</td><td></td></tr>
+  </table>
+  <table><tr><td class="sh" colspan="5">Mid-term Assessment — Continuous Assessment Only</td></tr></table>
+  <table class="at"><thead><tr><th style="text-align:left">SUBJECTS</th><th>1st CA</th><th>2nd CA</th><th>3rd CA</th><th>CA Total</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="bg">
+    <div><h4>Grading Method</h4><table>${gradingRows}</table></div>
+    <div><h4>Effectiveness</h4><table><tr><th></th><th class="c">5</th><th class="c">4</th><th class="c">3</th><th class="c">2</th><th class="c">1</th></tr>${effectivenessRows}</table></div>
+  </div>
+  <div class="cm"><span class="lbl">Class Teacher's Comment:</span> <em style="white-space:pre-wrap">${escapeHtml(data.classTeacherComment || '')}</em> ______________________________________________ &nbsp;&nbsp;<span class="lbl">Signature:</span> <span style="display:inline-flex;width:72px;height:22px;align-items:flex-end;justify-content:center;border-bottom:1px solid #999">${data.classTeacherSignatureUrl ? `<img src="${resolveMediaUrl(data.classTeacherSignatureUrl)}" style="max-height:21px;max-width:100%;object-fit:contain" alt="Class teacher signature" />` : ''}</span></div>
+  <div class="cm"><span class="lbl">Principal's Comment:</span> <em>${data.principalRemark}</em></div>
+  <div class="cm" style="border-bottom:1px solid #bbb"></div>
+  <div class="siggrid">
+    <div class="in"><div class="sigbox">${data.principalSignatureUrl ? `<img src="${resolveMediaUrl(data.principalSignatureUrl)}" alt="Principal signature" />` : ''}</div><div><strong><em>Principal</em></strong></div><div><strong>${data.schoolName.toUpperCase()}</strong></div></div>
+    <div class="in"><div class="sigbox">${data.studentSignatureUrl ? `<img src="${resolveMediaUrl(data.studentSignatureUrl)}" alt="Student signature" />` : ''}</div><div><strong><em>Student</em></strong></div><div><strong>${data.studentName}</strong></div></div>
+  </div>
+  <script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });</script>
+</div></body></html>`
+}
 function buildSingleTermPrintHtml(
   data: SingleTermReportCardDto,
   termNum: number,
@@ -1056,8 +1199,8 @@ function buildSingleTermPrintHtml(
 </div>
 
 <div class="cm">
-  <span class="lbl">Class Teacher's Comment:</span> ______________________________________________ &nbsp;&nbsp;
-  <span class="lbl">Signature:</span> ___________
+  <span class="lbl">Class Teacher's Comment:</span> <em style="white-space:pre-wrap">${escapeHtml(data.classTeacherComment || '')}</em> ______________________________________________ &nbsp;&nbsp;
+  <span class="lbl">Signature:</span> <span style="display:inline-flex;width:72px;height:22px;align-items:flex-end;justify-content:center;border-bottom:1px solid #999">${data.classTeacherSignatureUrl ? `<img src="${resolveMediaUrl(data.classTeacherSignatureUrl)}" style="max-height:21px;max-width:100%;object-fit:contain" alt="Class teacher signature" />` : ``}</span>
 </div>
 <div class="cm">
   <span class="lbl">Principal's Comment:</span> <em>${data.principalRemark}</em>
@@ -1210,8 +1353,8 @@ function buildCumulativePrintHtml(
     </table>
   </div>
 <div class="cm">
-  <span class="lbl">Class Teacher's Comment:</span> ______________________________________________ &nbsp;&nbsp;
-  <span class="lbl">Signature:</span> ___________
+  <span class="lbl">Class Teacher's Comment:</span> <em style="white-space:pre-wrap">${escapeHtml(data.classTeacherComment || '')}</em> ______________________________________________ &nbsp;&nbsp;
+  <span class="lbl">Signature:</span> <span style="display:inline-flex;width:72px;height:22px;align-items:flex-end;justify-content:center;border-bottom:1px solid #999">${data.classTeacherSignatureUrl ? `<img src="${resolveMediaUrl(data.classTeacherSignatureUrl)}" style="max-height:21px;max-width:100%;object-fit:contain" alt="Class teacher signature" />` : ``}</span>
 </div>
 <div class="cm">
   <span class="lbl">Principal's Comment:</span> <em>${data.principalRemark}</em>

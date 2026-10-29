@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/store"
-import axiosInstance from "@/services/api"
+import { useStaffClassAccess } from "@/hooks/use-staff-class-access"
 import {
   LayoutDashboard,
   FileText,
@@ -41,6 +40,7 @@ const navigationItems = {
     { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
     { id: "results", name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList, description: "Upload student results" },
+    { id: "class-comments", name: "My Classes", href: "/dashboard/teacher/classes", icon: Users, description: "Manage class rosters and report card comments" },
     { id: "results-approval", name: "Approve Results", href: "/dashboard/teacher/results-approval", icon: ClipboardCheck, description: "Review pending submissions" },
     { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
   ],
@@ -50,6 +50,7 @@ const navigationItems = {
     { id: "subjects", name: "My Subjects", href: "/dashboard/teacher/subjects", icon: FileText, description: "View assigned subjects" },
     { id: "assignments", name: "Assignments", href: "/dashboard/teacher/assignments", icon: BookOpen, description: "Manage assignments" },
     { id: "results", name: "Upload Results", href: "/dashboard/teacher/results", icon: ClipboardList, description: "Upload student results" },
+    { id: "class-comments", name: "My Classes", href: "/dashboard/teacher/classes", icon: Users, description: "Manage class rosters and report card comments" },
     { id: "results-approval", name: "Approve Results", href: "/dashboard/teacher/results-approval", icon: ClipboardCheck, description: "Review pending submissions" },
     { id: "resources", name: "Resources", href: "/dashboard/teacher/resources", icon: Upload, description: "Manage teaching materials" },
   ],
@@ -62,32 +63,12 @@ export function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
-  const [canAccessApproval, setCanAccessApproval] = useState(false)
-
-  useEffect(() => {
-    if (user?.role !== "staff") {
-      setCanAccessApproval(false)
-      return
-    }
-
-    let active = true
-    axiosInstance.get('/result-approval/can-approve-results')
-      .then(({ data }) => {
-        if (active) setCanAccessApproval(Boolean(data?.canApprove ?? false))
-      })
-      .catch(() => {
-        if (active) setCanAccessApproval(false)
-      })
-
-    return () => {
-      active = false
-    }
-  }, [user?.id, user?.role])
+  const canAccessApproval = useStaffClassAccess(user?.id, user?.role === "staff")
 
   if (!user) return null
 
   const navigation = (navigationItems[user.role as keyof typeof navigationItems] || []).filter((item) => {
-    if (item.id !== 'results-approval') return true
+    if (item.id !== 'results-approval' && item.id !== 'class-comments') return true
     return user.role === 'staff' ? canAccessApproval : false
   })
   // If backend flagged profile as incomplete or user is migrated, surface a completion link
