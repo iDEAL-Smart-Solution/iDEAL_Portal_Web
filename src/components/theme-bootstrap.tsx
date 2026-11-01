@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useAuthStore } from '@/store'
 import axiosInstance from '@/services/api'
 import { applyThemeColor, DEFAULT_PRIMARY_COLOR, extractThemeColor } from '@/lib/theme'
+import { resolveMediaUrl } from '@/lib/utils'
 
 const SCHOOL_INFO_STORAGE_KEY = 'schoolInfo'
 const SCHOOL_NAME_STORAGE_KEY = 'SchoolName'
@@ -54,7 +55,24 @@ const persistSchoolBranding = (schoolName?: string | null, schoolLogo?: string |
 }
 
 export function ThemeBootstrap() {
-  const { isAuthenticated, user } = useAuthStore()
+  const { isAuthenticated, user, publicBranding } = useAuthStore()
+
+  useEffect(() => {
+    const storedName = typeof window === 'undefined' ? null : sessionStorage.getItem(SCHOOL_NAME_STORAGE_KEY)
+    const storedLogo = typeof window === 'undefined' ? null : sessionStorage.getItem(SCHOOL_LOGO_STORAGE_KEY)
+    const schoolName = publicBranding?.schoolName || user?.schoolName || storedName || 'iDEAL School Portal'
+    const schoolLogo = publicBranding?.schoolLogoFilePath || user?.schoolLogo || storedLogo
+
+    document.title = schoolName
+
+    let icon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]')
+    if (!icon) {
+      icon = document.createElement('link')
+      icon.rel = 'icon'
+      document.head.appendChild(icon)
+    }
+    icon.href = schoolLogo ? resolveMediaUrl(schoolLogo) : '/logo.png'
+  }, [publicBranding?.schoolName, publicBranding?.schoolLogoFilePath, user?.schoolName, user?.schoolLogo])
 
   useEffect(() => {
     applyThemeColor(DEFAULT_PRIMARY_COLOR)
