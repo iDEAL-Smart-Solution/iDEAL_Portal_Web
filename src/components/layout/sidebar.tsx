@@ -32,6 +32,9 @@ const navigationItems = {
     { id: "performance", name: "Performance", href: "/dashboard/parent/performance", icon: BarChart, description: "View analytics and performance" },
     { id: "wards", name: "My Wards", href: "/dashboard/parent/wards", icon: Users, description: "View your children's information" },
     { id: "results", name: "Results", href: "/dashboard/parent/results", icon: FileText, description: "View academic results" },
+    { id: "learning", name: "Learning & Updates", href: "/dashboard/parent/learning", icon: BookOpen, description: "Assignments, materials, and announcements" },
+    { id: "attendance", name: "Attendance", href: "/dashboard/parent/attendance", icon: Calendar, description: "Monitor linked children's attendance" },
+    { id: "reports", name: "Reports", href: "/dashboard/parent/reports", icon: FileText, description: "Download children's report cards" },
     { id: "payments", name: "Payments", href: "/dashboard/parent/payments", icon: CreditCard, description: "Manage payments" },
   ],
   staff: [

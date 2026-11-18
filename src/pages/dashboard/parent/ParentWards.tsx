@@ -1,7 +1,7 @@
 ﻿
 
 import { useEffect } from "react"
-import { useAuthStore, useResultsStore, usePaymentsStore } from "@/store"
+import { useAuthStore, useParentDashboardStore, getParentResults, getParentPayments } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,22 +17,16 @@ import { useNavigate } from "react-router-dom"
 export default function ParentWards() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { results, fetchResults } = useResultsStore()
-  const { payments, fetchPayments } = usePaymentsStore()
+  const { children, fetchDashboard, isLoading } = useParentDashboardStore()
 
   // Get ward information from API
-  const wardIds = (user as any)?.wardIds || []
-  const wards: any[] = [] // Wards will come from API
+  const wards = children.map((child) => ({ ...child, avatar: child.avatar || undefined, classId: child.className }))
+  const results = getParentResults(children)
+  const payments = getParentPayments(children)
 
   useEffect(() => {
-    const userWardIds = (user as any)?.wardIds || []
-    if (userWardIds.length > 0) {
-      userWardIds.forEach((wardId: string) => {
-        fetchResults(wardId)
-      })
-      fetchPayments()
-    }
-  }, [user, fetchResults, fetchPayments])
+    if (user) void fetchDashboard()
+  }, [user?.id, fetchDashboard])
 
   if (!user) {
     return (
@@ -42,6 +36,10 @@ export default function ParentWards() {
         </div>
       </DashboardLayout>
     )
+  }
+
+  if (isLoading) {
+    return <DashboardLayout><div className="flex items-center justify-center h-64"><LoadingSpinner size="lg" /></div></DashboardLayout>
   }
 
   if (wards.length === 0) {

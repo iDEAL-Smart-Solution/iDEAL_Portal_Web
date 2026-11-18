@@ -28,11 +28,14 @@ const isAuthLoginRequest = (config?: any) => {
   return requestUrl.includes("/auth/login");
 };
 
+const isPublicParentRegistrationRequest = (config?: any) =>
+  String(config?.url || "").toLowerCase().includes("/parent/register");
+
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem("token");
     const schoolId = sessionStorage.getItem("SchoolId");
-    const schoolDomain = sessionStorage.getItem("SchoolDomain");
+    const schoolDomain = sessionStorage.getItem("SchoolDomain") || import.meta.env.VITE_SCHOOL_DOMAIN || window.location.origin;
     const authStorage = sessionStorage.getItem("auth-storage");
 
     if (token && authStorage) {
@@ -65,8 +68,6 @@ axiosInstance.interceptors.request.use(
     if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
       if (schoolDomain) {
         config.headers["X-School-Domain"] = schoolDomain;
-      } else {
-        config.headers["X-School-Domain"] = "famzadschools.com"; 
       }
     }
 
@@ -88,7 +89,7 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isPublicParentRegistrationRequest(error.config)) {
       sessionStorage.removeItem("token")
       sessionStorage.removeItem("SchoolId")
       sessionStorage.removeItem("auth-storage")

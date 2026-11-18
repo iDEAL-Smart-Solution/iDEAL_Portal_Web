@@ -1,350 +1,120 @@
-﻿
-
-import { CardDescription } from "@/components/ui/card"
-
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { useAuthStore, usePaymentsStore } from "@/store"
+import { useAuthStore, useParentDashboardStore } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
-import { DataTable } from "@/components/ui/data-table"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { EmptyState } from "@/components/ui/empty-state"
-import { StatusBadge } from "@/components/ui/status-badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CreditCard, DollarSign, Clock, CheckCircle, AlertCircle, XCircle, Users } from "lucide-react"
+import { CreditCard, AlertCircle } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import type { Payment } from "@/types"
+import axiosInstance from "@/services/api"
+import { showError } from "@/lib/notifications"
 
 export default function ParentPayments() {
   const [searchParams] = useSearchParams()
   const wardParam = searchParams.get("ward")
-
   const { user } = useAuthStore()
-  const { payments, fetchPayments, makePayment, isLoading, error } = usePaymentsStore()
-  const [selectedWard, setSelectedWard] = useState<string>(wardParam || "all")
+  const { children, isLoading, error, fetchDashboard, startPayment } = useParentDashboardStore()
+  const [selectedWard, setSelectedWard] = useState(wardParam || "all")
   const [processingPayment, setProcessingPayment] = useState<string | null>(null)
 
-  // Get ward information from API
-  const wardIds = (user as any)?.wardIds || []
-  const wards: any[] = [] // Wards will come from API
-
   useEffect(() => {
-    if (wardIds.length > 0) {
-      fetchPayments()
-    }
-  }, [wardIds, fetchPayments])
-
+    if (user) void fetchDashboard()
+  }, [user?.id, fetchDashboard])
   useEffect(() => {
-    if (wardParam && wardParam !== selectedWard) {
-      setSelectedWard(wardParam)
-    }
-  }, [wardParam, selectedWard])
+    if (wardParam) setSelectedWard(wardParam)
+  }, [wardParam])
 
-  const handlePayment = async (paymentId: string) => {
-    setProcessingPayment(paymentId)
+  const filteredChildren = selectedWard === "all" ? children : children.filter((child) => child.id === selectedWard)
+  const outstanding = useMemo(() => filteredChildren.flatMap((child) => child.outstandingPayments), [filteredChildren])
+  const history = useMemo(() => filteredChildren.flatMap((child) => child.payments.map((payment) => ({ ...payment, studentName: `${child.firstName} ${child.lastName}` }))), [filteredChildren])
+  const pendingCount = outstanding.length + history.filter((payment) => payment.status === "pending").length
+  const pendingTotal = outstanding.reduce((sum, payment) => sum + payment.amount, 0)
+  const paid = history.filter((payment) => payment.status === "completed")
+  const paidTotal = paid.reduce((sum, payment) => sum + payment.amount, 0)
+
+  const handlePayment = async (studentId: string, paymentTypeId: string, key: string) => {
+    setProcessingPayment(key)
     try {
-      // Find the payment to get details
-      const payment = payments.find(p => p.id === paymentId)
-      if (payment) {
-        await makePayment({
-          studentId: payment.studentId,
-          paymentTypeId: payment.paymentTypeId,
-          amount: payment.amount
-        })
-      }
+      await startPayment(studentId, paymentTypeId)
     } finally {
       setProcessingPayment(null)
     }
   }
 
-  if (!user) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <LoadingSpinner size="lg" />
-        </div>
-      </DashboardLayout>
-    )
+  const downloadReceipt = async (paymentId: string) => {
+    try {
+      const response = await axiosInstance.get(`/Parent/payment-receipt/${paymentId}`)
+      const receipt = response.data.data
+      const escape = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character] || character))
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Payment receipt</title><style>body{font:16px Arial,sans-serif;max-width:720px;margin:48px auto;color:#172033}h1{color:#123b67}.row{padding:12px 0;border-bottom:1px solid #ddd}.label{color:#667085}.amount{font-size:24px;font-weight:bold}</style></head><body><h1>Payment Receipt</h1><p>Official record of a completed school payment</p><div class="row"><span class="label">Student</span><br>${escape(receipt.studentName)} (${escape(receipt.studentUin)})</div><div class="row"><span class="label">Payment</span><br>${escape(receipt.paymentType)}</div><div class="row"><span class="label">Term / Session</span><br>${escape(receipt.term)} term · ${escape(receipt.session)}</div><div class="row"><span class="label">Paid at</span><br>${escape(formatDate(receipt.paidAt))}</div><div class="row"><span class="label">Transaction reference</span><br>${escape(receipt.transactionReference)}</div><p class="amount">${escape(formatCurrency(receipt.amount))}</p></body></html>`
+      const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }))
+      const anchor = document.createElement("a")
+      anchor.href = url
+      anchor.download = `payment-receipt-${paymentId}.html`
+      anchor.click()
+      URL.revokeObjectURL(url)
+    } catch (error: any) {
+      showError(error.response?.data?.message || "Could not download this receipt")
+    }
   }
-
-  // Filter payments based on selected ward
-  const filteredPayments = selectedWard === "all" ? payments : payments.filter((p) => p.studentId === selectedWard)
-
-  // Calculate statistics
-  const pendingPayments = filteredPayments.filter((p) => p.status === "pending")
-  const completedPayments = filteredPayments.filter((p) => p.status === "completed")
-  const failedPayments = filteredPayments.filter((p) => p.status === "failed")
-  const totalPending = pendingPayments.reduce((sum, p) => sum + p.amount, 0)
-  const totalPaid = completedPayments.reduce((sum, p) => sum + p.amount, 0)
-
-  const columns = [
-    {
-      key: "studentId" as keyof Payment,
-      label: "Student",
-      render: (value: string) => {
-        const student = wards.find((w: any) => w.id === value)
-        return (
-          <div className="font-medium">{student ? `${student.firstName} ${student.lastName}` : "Unknown Student"}</div>
-        )
-      },
-    },
-    {
-      key: "description" as keyof Payment,
-      label: "Description",
-      render: (value: string) => <div className="font-medium">{value}</div>,
-    },
-    {
-      key: "amount" as keyof Payment,
-      label: "Amount",
-      render: (value: number) => <div className="font-semibold">{formatCurrency(value)}</div>,
-    },
-    {
-      key: "dueDate" as keyof Payment,
-      label: "Due Date",
-      render: (value: string) => formatDate(value),
-    },
-    {
-      key: "status" as keyof Payment,
-      label: "Status",
-      render: (value: string) => <StatusBadge status={value as any} />,
-    },
-    {
-      key: "paidDate" as keyof Payment,
-      label: "Paid Date",
-      render: (value: string) => (value ? formatDate(value) : "-"),
-    },
-    {
-      key: "id" as keyof Payment,
-      label: "Actions",
-      render: (value: string, payment: Payment) =>
-        payment.status === "pending" ? (
-          <Button size="sm" onClick={() => handlePayment(value)} disabled={processingPayment === value}>
-            {processingPayment === value ? (
-              <>
-                <LoadingSpinner size="sm" className="mr-2" />
-                Processing...
-              </>
-            ) : (
-              "Pay Now"
-            )}
-          </Button>
-        ) : payment.status === "failed" ? (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handlePayment(value)}
-            disabled={processingPayment === value}
-          >
-            {processingPayment === value ? (
-              <>
-                <LoadingSpinner size="sm" className="mr-2" />
-                Retrying...
-              </>
-            ) : (
-              "Retry Payment"
-            )}
-          </Button>
-        ) : (
-          <Badge variant="secondary">Completed</Badge>
-        ),
-    },
-  ]
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
           title="Payments"
-          description="Manage school fees and payments for your children"
+          description="Review outstanding fees and payment history for your children"
           actions={
             <Select value={selectedWard} onValueChange={setSelectedWard}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Children</SelectItem>
-                {wards.map((ward: any) => (
-                  <SelectItem key={ward.id} value={ward.id}>
-                    {ward.firstName} {ward.lastName}
-                  </SelectItem>
-                ))}
+                {children.map((child) => <SelectItem key={child.id} value={child.id}>{child.firstName} {child.lastName}</SelectItem>)}
               </SelectContent>
             </Select>
           }
         />
 
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <LoadingSpinner size="lg" />
-          </div>
-        ) : error ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>Error loading payments: {error}</AlertDescription>
-          </Alert>
-        ) : filteredPayments.length === 0 ? (
-          <EmptyState
-            icon={CreditCard}
-            title="No Payments Found"
-            description={
-              selectedWard === "all"
-                ? "No payment records found for any of your children."
-                : "No payment records found for the selected child."
-            }
-          />
-        ) : (
+        {isLoading ? <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div> : null}
+        {error ? <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert> : null}
+        {!isLoading && !error && (
           <>
-            {/* Statistics Cards */}
-            <div className="grid gap-4 md:grid-cols-5">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Children</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{selectedWard === "all" ? wards.length : 1}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {selectedWard === "all" ? "All children" : "Selected"}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{pendingPayments.length}</div>
-                  <p className="text-xs text-muted-foreground">{formatCurrency(totalPending)}</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{completedPayments.length}</div>
-                  <p className="text-xs text-muted-foreground">{formatCurrency(totalPaid)}</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Failed</CardTitle>
-                  <XCircle className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{failedPayments.length}</div>
-                  <p className="text-xs text-muted-foreground">Need attention</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{filteredPayments.length}</div>
-                  <p className="text-xs text-muted-foreground">All payments</p>
-                </CardContent>
-              </Card>
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card><CardHeader><CardTitle className="text-sm">Outstanding Fees</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{outstanding.length}</div><p className="text-sm text-muted-foreground">{formatCurrency(pendingTotal)}</p></CardContent></Card>
+              <Card><CardHeader><CardTitle className="text-sm">Pending Transactions</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{history.filter((payment) => payment.status === "pending").length}</div><p className="text-sm text-muted-foreground">Awaiting payment confirmation</p></CardContent></Card>
+              <Card><CardHeader><CardTitle className="text-sm">Completed Payments</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{paid.length}</div><p className="text-sm text-muted-foreground">{formatCurrency(paidTotal)} paid</p></CardContent></Card>
             </div>
 
-            {/* Urgent Payments Alert */}
-            {pendingPayments.some((p) => new Date(p.dueDate) < new Date()) && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  You have overdue payments for{" "}
-                  {selectedWard === "all" ? "some of your children" : "the selected child"}. Please settle them as soon
-                  as possible to avoid late fees.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* Quick Pay Section for Pending Payments */}
-            {pendingPayments.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Pay - Pending Payments</CardTitle>
-                  <CardDescription>Pay multiple outstanding fees at once</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {pendingPayments.slice(0, 5).map((payment) => {
-                      const student = wards.find((w: any) => w.id === payment.studentId)
-                      const isOverdue = new Date(payment.dueDate) < new Date()
-
-                      return (
-                        <div key={payment.id} className="flex items-center justify-between p-3 rounded-lg border">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium">{payment.description}</p>
-                              {isOverdue && (
-                                <Badge variant="destructive" className="text-xs">
-                                  Overdue
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {student?.firstName} {student?.lastName} â€¢ Due {formatDate(payment.dueDate)}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="text-right">
-                              <p className="font-semibold">{formatCurrency(payment.amount)}</p>
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={() => handlePayment(payment.id)}
-                              disabled={processingPayment === payment.id}
-                            >
-                              {processingPayment === payment.id ? (
-                                <>
-                                  <LoadingSpinner size="sm" className="mr-2" />
-                                  Processing...
-                                </>
-                              ) : (
-                                "Pay Now"
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      )
-                    })}
-
-                    {pendingPayments.length > 5 && (
-                      <p className="text-sm text-muted-foreground text-center">
-                        And {pendingPayments.length - 5} more pending payments...
-                      </p>
-                    )}
+            <Card>
+              <CardHeader><CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />Outstanding Fees</CardTitle><CardDescription>Fees currently due for this academic term</CardDescription></CardHeader>
+              <CardContent className="space-y-3">
+                {outstanding.length === 0 ? <p className="py-4 text-center text-sm text-muted-foreground">No outstanding fees for the selected child or children.</p> : outstanding.map((fee) => {
+                  const key = `${fee.studentId}-${fee.paymentTypeId}`
+                  return <div key={key} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
+                    <div><p className="font-medium">{fee.paymentTypeName}</p><p className="text-sm text-muted-foreground">{fee.studentName} · {fee.term} term · {fee.session}</p>{fee.description && <p className="text-sm text-muted-foreground">{fee.description}</p>}</div>
+                    <div className="flex items-center gap-3"><strong>{formatCurrency(fee.amount)}</strong><Button onClick={() => void handlePayment(fee.studentId, fee.paymentTypeId, key)} disabled={processingPayment === key}>{processingPayment === key ? <LoadingSpinner size="sm" /> : "Pay Now"}</Button></div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                })}
+              </CardContent>
+            </Card>
 
-            {/* Payments Table */}
-            <DataTable
-              title="Payment History"
-              description={`Complete payment records ${selectedWard === "all" ? "for all children" : "for selected child"}`}
-              data={filteredPayments}
-              columns={columns}
-              searchable
-              searchPlaceholder="Search payments..."
-            />
+            <Card>
+              <CardHeader><CardTitle>Payment History</CardTitle><CardDescription>Payment transactions for the selected child or children</CardDescription></CardHeader>
+              <CardContent className="space-y-3">
+                {history.length === 0 ? <p className="py-4 text-center text-sm text-muted-foreground">No payment transactions yet.</p> : history.map((payment) => <div key={payment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
+                  <div><p className="font-medium">{payment.description}</p><p className="text-sm text-muted-foreground">{payment.studentName} · {payment.term} term · {payment.session}</p><p className="text-xs text-muted-foreground">{payment.transactionReference || "No reference"} · {payment.datePaid ? formatDate(payment.datePaid) : "Date unavailable"}</p></div>
+                  <div className="flex items-center gap-3"><strong>{formatCurrency(payment.amount)}</strong><Badge variant={payment.status === "completed" ? "default" : payment.status === "failed" ? "destructive" : "secondary"}>{payment.status}</Badge>{payment.status === "completed" && <Button variant="outline" size="sm" onClick={() => void downloadReceipt(payment.id)}>Download Receipt</Button>}</div>
+                </div>)}
+              </CardContent>
+            </Card>
           </>
         )}
       </div>
     </DashboardLayout>
   )
 }
-

@@ -258,6 +258,9 @@ export interface RegisterData {
   lastName: string
   role: UserRole
   schoolId?: string
+  phoneNumber?: string
+  address?: string
+  gender?: string
 }
 export interface AdmissionFormData {
   firstName: string;

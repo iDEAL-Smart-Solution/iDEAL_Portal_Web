@@ -35,6 +35,9 @@ const navigationItems = {
     { name: "Dashboard", href: "/dashboard/parent", icon: LayoutDashboard },
     { name: "My Wards", href: "/dashboard/parent/wards", icon: Users },
     { name: "Results", href: "/dashboard/parent/results", icon: FileText },
+    { name: "Learning & Updates", href: "/dashboard/parent/learning", icon: BookOpen },
+    { name: "Attendance", href: "/dashboard/parent/attendance", icon: Calendar },
+    { name: "Reports", href: "/dashboard/parent/reports", icon: FileText },
     { name: "Payments", href: "/dashboard/parent/payments", icon: CreditCard },
   ],
   staff: [

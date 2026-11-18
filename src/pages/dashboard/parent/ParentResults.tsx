@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { useAuthStore, useResultsStore } from "@/store"
+import { useAuthStore, useParentDashboardStore, getParentResults } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { PageHeader } from "@/components/ui/page-header"
 import { DataTable } from "@/components/ui/data-table"
@@ -20,21 +20,16 @@ export default function ParentResults() {
   const wardParam = searchParams.get("ward")
 
   const { user } = useAuthStore()
-  const { results, fetchResults, isLoading, error } = useResultsStore()
+  const { children, isLoading, error, fetchDashboard } = useParentDashboardStore()
   const [selectedWard, setSelectedWard] = useState<string>(wardParam || "all")
 
   // Get ward information from API
-  const wardIds = (user as any)?.wardIds || []
-  const wards: any[] = [] // Wards will come from API
+  const wards = children.map((child) => ({ ...child, avatar: child.avatar || undefined }))
+  const results = getParentResults(children)
 
   useEffect(() => {
-    const userWardIds = (user as any)?.wardIds || []
-    if (userWardIds.length > 0) {
-      userWardIds.forEach((wardId: string) => {
-        fetchResults(wardId)
-      })
-    }
-  }, [user, fetchResults])
+    if (user) void fetchDashboard()
+  }, [user?.id, fetchDashboard])
 
   useEffect(() => {
     if (wardParam && wardParam !== selectedWard) {

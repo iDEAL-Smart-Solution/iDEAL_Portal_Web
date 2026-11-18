@@ -25,7 +25,7 @@ interface AuthStore extends AuthState {
   isBrandingLoading: boolean
 
   login: (credentials: LoginCredentials) => Promise<void>
-  register: (data: RegisterData) => Promise<void>
+  register: (data: RegisterData) => Promise<{ parentUin: string; message: string } | undefined>
   logout: () => void
   clearError: () => void
   setLoading: (loading: boolean) => void
@@ -148,14 +148,28 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      register: async () => {
+      register: async (data) => {
         set({ isLoading: true, error: null })
         try {
-          throw new Error("Registration endpoint not yet integrated. Please use the Aspirant Application form.")
+          if (normalizeRole(data.role) !== "parent") {
+            throw new Error("Registration is only available for parent accounts. Please use your school's account creation process.")
+          }
+          const response = await axiosInstance.post("/Parent/register", {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            password: data.password,
+            phoneNumber: data.phoneNumber || "",
+            address: data.address || "",
+            gender: data.gender || "",
+          })
+          set({ isLoading: false, error: null })
+          return { parentUin: response.data.parentUin, message: response.data.message }
         } catch (error: any) {
           const errorMessage = error.response?.data?.message || error.message || "Registration failed"
           set({ error: errorMessage, isLoading: false })
           showError(errorMessage)
+          throw error
         }
       },
 

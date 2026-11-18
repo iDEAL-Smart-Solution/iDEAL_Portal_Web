@@ -1,7 +1,7 @@
 ﻿
 
 import { useEffect, useState } from "react"
-import { useAuthStore, useResultsStore, usePaymentsStore, useAssignmentsStore } from "@/store"
+import { useAuthStore, useParentDashboardStore, getParentResults, getParentPayments } from "@/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { StatsCard } from "@/components/ui/stats-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,33 +10,29 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, CreditCard, FileText, TrendingUp, AlertCircle, Clock } from "lucide-react"
-import { formatCurrency, formatDate, getGradeColor, getInitials } from "@/lib/utils"
+import { Users, CreditCard, FileText, TrendingUp } from "lucide-react"
+import { formatCurrency, getGradeColor, getInitials } from "@/lib/utils"
 import { useNavigate } from "react-router-dom"
 
 export default function ParentDashboard() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { results, fetchResults, isLoading: resultsLoading } = useResultsStore()
-  const { payments, fetchPayments, isLoading: paymentsLoading } = usePaymentsStore()
-  const { fetchAssignments } = useAssignmentsStore()
+  const { children, isLoading, fetchDashboard, fetchLearning, learning } = useParentDashboardStore()
   const [selectedWard, setSelectedWard] = useState<string>("all")
 
   // Get ward information from user data
-  const wardIds = (user as any)?.wardIds || []
-  const wards: any[] = [] // Wards will come from API
+  const wards = children.map((child) => ({ ...child, avatar: child.avatar || undefined, studentId: child.studentUin }))
+  const results = getParentResults(children)
+  const payments = getParentPayments(children)
+  const resultsLoading = isLoading
+  const paymentsLoading = isLoading
 
   useEffect(() => {
-    const userWardIds = (user as any)?.wardIds || []
-    if (userWardIds.length > 0) {
-      // Fetch data for all wards
-      userWardIds.forEach((wardId: string) => {
-        fetchResults(wardId)
-      })
-      fetchPayments()
-      fetchAssignments()
+    if (user) {
+      void fetchDashboard()
+      void fetchLearning()
     }
-  }, [user, fetchResults, fetchPayments, fetchAssignments])
+  }, [user?.id, fetchDashboard, fetchLearning])
 
   if (!user) {
     return (
@@ -79,9 +75,9 @@ export default function ParentDashboard() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Children</SelectItem>
-                {wardIds.map((wardId: string) => (
-                  <SelectItem key={wardId} value={wardId}>
-                    Child {wardId}
+                {wards.map((ward) => (
+                  <SelectItem key={ward.id} value={ward.id}>
+                    {ward.firstName} {ward.lastName}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -246,7 +242,7 @@ export default function ParentDashboard() {
                         <div>
                           <p className="font-medium">{payment.description}</p>
                           <p className="text-sm text-muted-foreground">
-                            {student?.firstName} {student?.lastName} - Due {formatDate(payment.dueDate)}
+                            {student?.firstName} {student?.lastName} · {payment.description}
                           </p>
                         </div>
                         <div className="text-right">
@@ -260,51 +256,6 @@ export default function ParentDashboard() {
                   })}
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Urgent Notifications */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5" />
-                Notifications
-              </CardTitle>
-              <CardDescription>Important updates and alerts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {pendingPayments.filter((p) => new Date(p.dueDate) < new Date()).length > 0 && (
-                  <div className="p-3 rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                      <span className="text-sm font-medium text-red-800 dark:text-red-200">Overdue Payments</span>
-                    </div>
-                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                      You have overdue payments that need immediate attention.
-                    </p>
-                  </div>
-                )}
-
-                {filteredResults.some((r) => r.score < 60) && (
-                  <div className="p-3 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-orange-600" />
-                      <span className="text-sm font-medium text-orange-800 dark:text-orange-200">Academic Alert</span>
-                    </div>
-                    <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-                      Some subjects need attention. Consider discussing with teachers.
-                    </p>
-                  </div>
-                )}
-
-                {pendingPayments.length === 0 && !filteredResults.some((r) => r.score < 60) && (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No urgent notifications at this time.</p>
-                  </div>
-                )}
-              </div>
             </CardContent>
           </Card>
 

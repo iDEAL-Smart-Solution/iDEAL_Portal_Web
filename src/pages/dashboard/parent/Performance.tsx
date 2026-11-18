@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useParentDashboardStore } from "@/store/parent-dashboard-store"
 
 interface Ward {
   id: string
@@ -17,9 +18,10 @@ interface Ward {
 
 export function ParentPerformancePage() {
   const { user } = useAuth()
-  const { analysis, isLoading, error, sessions, currentSession, fetchWardPerformance, fetchAvailableSessions } =
+  const { analysis, isLoading, error, sessions, currentSession, fetchWardPerformance, fetchAvailableSessions, fetchCurrentSession } =
     usePerformanceStore()
-  const [wards, setWards] = useState<Ward[]>([])
+  const { parentId, children, fetchDashboard } = useParentDashboardStore()
+  const wards: Ward[] = children.map((child) => ({ id: child.id, name: `${child.firstName} ${child.lastName}` }))
   const [selectedWardId, setSelectedWardId] = useState<string>("")
   const [filters, setFilters] = useState<PerformanceFilterValues>({
     term: 1,
@@ -30,27 +32,31 @@ export function ParentPerformancePage() {
   useEffect(() => {
     if (user?.schoolId) {
       fetchAvailableSessions(user.schoolId)
-      // TODO: Fetch parent's children (wards) from API
-      // For now, this would be populated from the store or additional API call
+      fetchCurrentSession(user.schoolId)
+      void fetchDashboard()
     }
-  }, [user?.schoolId, fetchAvailableSessions])
+  }, [user?.schoolId, fetchAvailableSessions, fetchCurrentSession, fetchDashboard])
+
+  useEffect(() => {
+    if (currentSession) setFilters((previous) => ({ ...previous, session: previous.session || currentSession }))
+  }, [currentSession])
 
   // Load ward performance data when filters or selected ward changes
   useEffect(() => {
-    if (user?.id && selectedWardId && filters.session) {
-      fetchWardPerformance(user.id, selectedWardId, filters.term || 1, filters.session)
+    if (parentId && selectedWardId && filters.session) {
+      fetchWardPerformance(parentId, selectedWardId, filters.term || 1, filters.session)
     }
-  }, [user?.id, selectedWardId, filters.term, filters.session, fetchWardPerformance])
+  }, [parentId, selectedWardId, filters.term, filters.session, fetchWardPerformance])
 
   const handleFilterChange = (newFilters: PerformanceFilterValues) => {
     const merged = { ...filters, ...newFilters }
     setFilters(merged)
 
-    if (!user?.id || !merged.session) return
+    if (!parentId || !merged.session) return
 
     // parent view uses ward-specific fetch
     if (selectedWardId) {
-      fetchWardPerformance(user.id, selectedWardId, merged.term ?? 1, merged.session)
+      fetchWardPerformance(parentId, selectedWardId, merged.term ?? 1, merged.session)
     }
   }
 

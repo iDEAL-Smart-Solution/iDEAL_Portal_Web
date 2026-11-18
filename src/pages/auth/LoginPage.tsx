@@ -180,7 +180,7 @@ export default function LoginPage() {
               <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
                 <div>
                   <label htmlFor="uin" className="mb-2 block text-sm font-medium text-text-secondary">
-                    UIN
+                    UIN or Email
                   </label>
                   <input
                     id="uin"
@@ -190,7 +190,7 @@ export default function LoginPage() {
                     value={uin}
                     onChange={(e) => setUin(e.target.value)}
                     className="block w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-text-primary shadow-sm outline-none transition focus:border-primary-500 focus:ring-4 focus:ring-primary-100"
-                    placeholder="Enter your UIN"
+                    placeholder="Enter your UIN or parent email"
                   />
                 </div>
 
@@ -248,6 +248,13 @@ export default function LoginPage() {
 
                 <div className="space-y-3 pt-1 text-center">
                   <p className="text-sm text-text-secondary">Do not have an account?</p>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/auth/register?role=parent")}
+                    className="inline-flex w-full items-center justify-center rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm font-medium text-primary-700 transition hover:bg-primary-50"
+                  >
+                    Register Parent Account
+                  </button>
                   <button
                     type="button"
                     onClick={() => navigate("/admission/apply")}

@@ -24,6 +24,9 @@ import ParentDashboard from '@/pages/dashboard/parent/ParentDashboard'
 import ParentPayments from '@/pages/dashboard/parent/ParentPayments'
 import ParentResults from '@/pages/dashboard/parent/ParentResults'
 import ParentWards from '@/pages/dashboard/parent/ParentWards'
+import ParentLearning from '@/pages/dashboard/parent/ParentLearning'
+import ParentAttendance from '@/pages/dashboard/parent/ParentAttendance'
+import ParentReports from '@/pages/dashboard/parent/ParentReports'
 
 import TeacherDashboard from '@/pages/dashboard/teacher/TeacherDashboard'
 import TeacherAssignments from '@/pages/dashboard/teacher/TeacherAssignments'
@@ -165,6 +168,21 @@ function App() {
           <Route path="/dashboard/parent/wards" element={
             <ProtectedRoute allowedRoles={['parent']}>
               <ParentWards />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/parent/learning" element={
+            <ProtectedRoute allowedRoles={['parent']}>
+              <ParentLearning />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/parent/attendance" element={
+            <ProtectedRoute allowedRoles={['parent']}>
+              <ParentAttendance />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/parent/reports" element={
+            <ProtectedRoute allowedRoles={['parent']}>
+              <ParentReports />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/parent/performance" element={
